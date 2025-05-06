@@ -15,13 +15,17 @@ public class Gun : MonoBehaviour
     [SerializeField]
     private Material bulletHoleMaterial;
 
+    private Transform fire;
+
     void Start()
     {
-        interactor.selectEntered.AddListener(OnSelect);
+        interactor.selectEntered.AddListener(OnGrab);
         interactor.selectExited.AddListener(OnExit);
 
         activateL.action.performed += Use;
         activateR.action.performed += Use;
+
+        fire = transform.GetChild(1).transform;
     }
 
     private void Use(CallbackContext callback)
@@ -36,7 +40,7 @@ public class Gun : MonoBehaviour
     {
         //ammmo--;
         RaycastHit hit;
-        if (Physics.Raycast(transform.position + new Vector3(0, 0.0477f, 0.1637f), transform.forward, out hit, 2048f)) //, maxDistance
+        if (Physics.Raycast(fire.position, transform.forward, out hit, 2048f)) //, maxDistance
         {
             //layer 6 = Target layer
             if (hit.transform.gameObject.layer == 6)
@@ -62,11 +66,12 @@ public class Gun : MonoBehaviour
         selected = false;
     }
 
-    private void OnSelect(SelectEnterEventArgs arg0)
+    private void OnGrab(SelectEnterEventArgs arg0)
     {
         if (arg0.interactableObject.transform.gameObject == gameObject)
         {
             selected = true;
+
         }
     }
 }

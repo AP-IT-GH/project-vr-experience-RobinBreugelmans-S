@@ -7,7 +7,8 @@ using UnityEngine.XR.Interaction.Toolkit;
 public class Gun : MonoBehaviour
 {
 
-    public InputActionReference activate;
+    public InputActionReference activateL;
+    public InputActionReference activateR;
     public NearFarInteractor interactor = null;
     private bool selected = false;
 
@@ -16,33 +17,20 @@ public class Gun : MonoBehaviour
 
     void Start()
     {
-        /*
         interactor.selectEntered.AddListener(OnSelect);
         interactor.selectExited.AddListener(OnExit);
 
-        activate.action.performed += Use;
-        */
+        activateL.action.performed += Use;
+        activateR.action.performed += Use;
     }
+
     private void Use(CallbackContext callback)
     {
         if (!selected)
             return;
 
-        print("USE PRESSED");
-
-        //shoot bullet
         shoot();
     }
-
-    /* //test because XR is broken
-    int a = 0;
-    private void FixedUpdate()
-    {
-        if (a++ % 30 == 0)
-        {
-            shoot();
-        }
-    }*/
 
     private void shoot()
     {
@@ -54,6 +42,7 @@ public class Gun : MonoBehaviour
             if (hit.transform.gameObject.layer == 6)
             {
                 //give points, etc.
+                print("hit target");
             }
             else
             {
@@ -75,8 +64,6 @@ public class Gun : MonoBehaviour
 
     private void OnSelect(SelectEnterEventArgs arg0)
     {
-        print(arg0.interactableObject.transform.gameObject.name);
-
         if (arg0.interactableObject.transform.gameObject == gameObject)
         {
             selected = true;

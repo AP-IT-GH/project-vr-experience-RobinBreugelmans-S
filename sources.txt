@@ -1,0 +1,5 @@
+op 06/05/2025
+- https://docs.unity3d.com/6000.0/Documentation/ScriptReference/GameObject-tag.html
+- https://stackoverflow.com/questions/30020429/raycast-to-get-gameobject-being-hit-to-run-script-and-function-on-gameobject
+- https://discussions.unity.com/t/how-do-i-reset-the-rotation/236760
+- chatgpt

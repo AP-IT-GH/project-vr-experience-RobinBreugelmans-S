@@ -29,7 +29,7 @@ namespace Assets.Scripts
             // maybe for future movement?
         }
 
-        short Hit()
+        public short Hit()
         {
             Destroy(this);
             return targetValue;

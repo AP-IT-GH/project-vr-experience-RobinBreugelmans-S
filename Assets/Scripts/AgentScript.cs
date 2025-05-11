@@ -12,29 +12,22 @@ namespace Assets.Scripts
         [SerializeField] GameObject[] obstaclePrefabs; // the targets to look for
         [SerializeField] short fovDepth = 10; // max distance to look at
         [SerializeField] float rotationSpeed = 90f; // speed to rotate ML agent head to mach human speed
-        GameObject target;
-        Quaternion og_rotation; // to store initial rotation to compare its current rotation to and give penalty when rotating out of gunrange
+        Quaternion og_roatation;
 
-        private void Start()
+        void Start()
         {
-            og_rotation = this.transform.rotation;
+            og_roatation = this.transform.rotation;
         }
+
         public override void OnEpisodeBegin()
         {
-            if (target != null)
-            {
-                Destroy(target);
-            }
-            target = Instantiate(obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)]);
+            this.transform.rotation = og_roatation; // reset rotation so it doesnt learn random positions
         }
 
         public override void CollectObservations(VectorSensor sensor)
         {
             sensor.AddObservation(this.transform.forward); // own forward position
             sensor.AddObservation(this.transform.rotation); // own rotation
-            Vector3 og_forward = og_rotation * Vector3.forward;
-            float alignment = Vector3.Dot(this.transform.forward, og_forward);
-            sensor.AddObservation(alignment); // value between -1 and 1
         }
 
         public override void OnActionReceived(ActionBuffers actions)
@@ -45,18 +38,6 @@ namespace Assets.Scripts
             // rotate the agent based on ml input
             this.transform.Rotate(Vector3.up, horizontal * rotationSpeed * Time.deltaTime);
             this.transform.Rotate(Vector3.right, -vertical * rotationSpeed * Time.deltaTime);
-
-
-            // Soft rotation penalty based on deviation from original forward
-            Vector3 og_forward = og_rotation * Vector3.forward;
-            float alignment = Vector3.Dot(this.transform.forward.normalized, og_forward.normalized); // looks for difference in angle and puts it between -1 and 1
-            float anglePenalty = 1f - Mathf.Clamp01((alignment + 1f) / 2f); // Penalty increases as misalignment grows
-            AddReward(-anglePenalty * 0.005f);
-
-            // Reward for aligning with original forward direction
-            float angleReward = Mathf.Clamp01((alignment + 1f) / 2f); // reward increases as alligment grows
-            AddReward(angleReward * 0.005f);
-
 
             RayPerceptionSensorComponent3D[] sensors = GetComponentsInChildren<RayPerceptionSensorComponent3D>();
             bool targetDetected = false;
@@ -72,40 +53,35 @@ namespace Assets.Scripts
                     }
                 }
             }
-            
+
 
             if (targetDetected)
             {
-                AddReward(0.1f); // Reward agent for keeping the target in sight
+                SetReward(0.5f); // Reward agent for keeping the target in sight
+                if (Physics.Raycast(this.transform.position, this.transform.forward, out RaycastHit hit, fovDepth) && hit.transform.gameObject.layer == 6)
+                {
+                    Shoot();
+                    SetReward(2.0f);
+                    EndEpisode();
+                }
             }
-
-            if (Physics.Raycast(this.transform.position, this.transform.forward, out RaycastHit hit, fovDepth) && hit.transform.gameObject.layer == 6)
+            else
             {
-                Shoot();
-                AddReward(2.0f);
-                EndEpisode();
-            }
-
-            // useless step punishment
-            AddReward(-0.001f);
-            
-            if (StepCount > 500)
-            {
-                AddReward(-1f); // punishment for not finding target withing given steps
+                SetReward(-1f); // punishment for not finding target withing given steps
                 EndEpisode();
             }
         }
 
         void Shoot()
         {
-            int score = this.GetComponentInChildren<Gun>().Shoot();
-            ScoreScript.AddScoreML(score);
+            //int score = this.GetComponentInChildren<Gun>().Shoot();
+            //ScoreScript.AddScoreML(score);
 
-            //if (Physics.Raycast(this.transform.position, this.transform.forward, out RaycastHit hit, fovDepth))
-            //{
-            //    int score = hit.collider.GetComponent<TargetScript>().Hit();
-            //    ScoreScript.AddScoreML(score);
-            //}
+            if (Physics.Raycast(this.transform.position, this.transform.forward, out RaycastHit hit, fovDepth))
+            {
+                int score = hit.collider.GetComponent<TargetScript>().Hit();
+                ScoreScript.AddScoreML(score);
+            }
         }
     }
 }

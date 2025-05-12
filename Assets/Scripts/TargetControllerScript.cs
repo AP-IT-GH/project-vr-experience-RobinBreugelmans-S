@@ -7,7 +7,6 @@ namespace Assets.Scripts
     {
         [SerializeField] GameObject[] obstaclePrefabs; // the targets to look for
 
-        [SerializeField] short targetValue = 1;
         [SerializeField] float minX = -5;
         [SerializeField] float minY = 0;
         [SerializeField] float minZ = 0;

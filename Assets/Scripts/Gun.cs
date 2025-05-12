@@ -38,7 +38,7 @@ namespace Assets.Scripts
             Shoot();
         }
 
-        public int Shoot()
+        private void Shoot()
         {
             //ammmo--;
             RaycastHit hit;
@@ -49,8 +49,6 @@ namespace Assets.Scripts
                 {
                     //give points, etc.
                     print("hit target");
-                    // return the score
-                    return hit.collider.GetComponent<TargetScript>().Hit();
                 }
                 else
                 {
@@ -63,7 +61,6 @@ namespace Assets.Scripts
                     Destroy(bulletHole, 90); //90s
                 }
             }
-            return 0;
         }
 
         private void OnExit(SelectExitEventArgs arg0)

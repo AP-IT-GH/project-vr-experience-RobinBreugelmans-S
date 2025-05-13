@@ -3,3 +3,22 @@ op 06/05/2025
 - https://stackoverflow.com/questions/30020429/raycast-to-get-gameobject-being-hit-to-run-script-and-function-on-gameobject
 - https://discussions.unity.com/t/how-do-i-reset-the-rotation/236760
 - chatgpt
+
+op 10, 11 en 12 mei
+- https://github.com/AP-IT-GH/jumper-assignment-BrentVanDaele/blob/main/Jumper/Assets/Scripts/CubeAgent.cs
+- chatgpt
+- https://discussions.unity.com/t/how-to-search-a-list-for-gameobjects-with-tag-and-copy-them-into-a-new-list/665075/6
+- https://discussions.unity.com/t/raycasting-for-interactables/920097
+- copilot.microsoft.com
+- https://unitymastershub.com/implementing-raycasting-in-unity-3d-a-step-by-step-guide-2/
+- https://discussions.unity.com/t/how-to-check-if-raycast-hits-a-certain-object/248279
+- https://docs.unity3d.com/Packages/com.unity.ml-agents@1.0/api/Unity.MLAgents.Sensors.RayPerceptionOutput.html
+- https://discussions.unity.com/t/how-to-check-ray-perception-sensor-3d/914089/2
+- https://discussions.unity.com/t/why-when-using-vector3-dot-the-dot-value-is-never-more-then-1/854406
+- https://discussions.unity.com/t/what-does-really-mean-the-forward-direction/842678
+- https://discussions.unity.com/t/making-a-raycast-visible/135103
+- https://docs.unity3d.com/ScriptReference/Debug.DrawLine.html
+- https://docs.unity3d.com/530/Documentation/ScriptReference/Debug.DrawLine.html
+- https://discussions.unity.com/t/angle-between-two-3d-points-on-a-plane/252685
+- https://docs.unity3d.com/ScriptReference/Vector3.Angle.html
+- https://en.wikipedia.org/wiki/Field_of_view

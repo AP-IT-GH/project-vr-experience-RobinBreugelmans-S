@@ -7,12 +7,12 @@ namespace Assets.Scripts
     {
         [SerializeField] GameObject[] obstaclePrefabs; // the targets to look for
 
-        [SerializeField] float minX = -5;
-        [SerializeField] float minY = 0;
-        [SerializeField] float minZ = 0;
-        [SerializeField] float maxX = 5;
-        [SerializeField] float maxY = 5;
-        [SerializeField] float maxZ = 0;
+        [SerializeField] float minX = -6;
+        [SerializeField] float minY = -2;
+        [SerializeField] float minZ = -5;
+        [SerializeField] float maxX = 6;
+        [SerializeField] float maxY = 1;
+        [SerializeField] float maxZ = -25;
         private float x = 0;
         private float y = 0;
         private float z = 0;
@@ -28,7 +28,7 @@ namespace Assets.Scripts
             currentTarget = Instantiate(
                 obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)], 
                 position: new Vector3(x, y, z), 
-                Quaternion.Euler(0, 0, 90) // 90° Z rotation
+                Quaternion.Euler(0, 0, 0) // 90° Z rotation
                 );
         }
 
@@ -43,7 +43,7 @@ namespace Assets.Scripts
                 currentTarget = Instantiate(
                     obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)],
                     position: new Vector3(x, y, z),
-                    Quaternion.Euler(0, 0, 90) // 90° Z rotation
+                    Quaternion.Euler(0, 0, 0) // 90° Z rotation
                     );
             }
         }

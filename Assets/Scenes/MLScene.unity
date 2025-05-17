@@ -700,11 +700,9 @@ MonoBehaviour:
     maxStep: 0
   hasUpgradedFromAgentParameters: 1
   MaxStep: 0
-  obstaclePrefabs:
-  - {fileID: 5998460014365962472, guid: 7f588656f27622f48baa8c9f0c68b0c5, type: 3}
-  fovDepth: 120
-  rotationSpeed: 90
   aiGun: {fileID: 2066846174}
+  rayLength: 100
+  rotationSpeed: 90
 --- !u!114 &845726455
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -718,11 +716,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_BrainParameters:
-    VectorObservationSize: 6
+    VectorObservationSize: 3
     NumStackedVectorObservations: 1
     m_ActionSpec:
       m_NumContinuousActions: 2
-      BranchSizes: 01000000
+      BranchSizes: 02000000
     VectorActionSize: 
     VectorActionDescriptions: []
     VectorActionSpaceType: 0

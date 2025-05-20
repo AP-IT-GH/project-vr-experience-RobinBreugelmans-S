@@ -14,6 +14,8 @@ public class Gun : MonoBehaviour
 
     [SerializeField]
     private Material bulletHoleMaterial;
+    [SerializeField]
+    private AudioSource shotSound;
 
     private Transform fire;
 
@@ -39,6 +41,7 @@ public class Gun : MonoBehaviour
     private void shoot()
     {
         //ammmo--;
+        shotSound.Play();
         RaycastHit hit;
         if (Physics.Raycast(fire.position, transform.forward, out hit, 2048f)) //, maxDistance
         {

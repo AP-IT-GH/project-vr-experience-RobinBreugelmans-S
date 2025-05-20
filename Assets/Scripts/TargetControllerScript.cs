@@ -30,6 +30,7 @@ namespace Assets.Scripts
                 position: new Vector3(x, y, z), 
                 Quaternion.Euler(0, 0, 0) // 90° Z rotation
                 );
+            this.GetComponentInChildren<AgentScript>().SetNewTarget(currentTarget);
         }
 
         // Update is called once per frame
@@ -45,6 +46,7 @@ namespace Assets.Scripts
                     position: new Vector3(x, y, z),
                     Quaternion.Euler(0, 0, 0) // 90° Z rotation
                     );
+                this.GetComponentInChildren<AgentScript>().SetNewTarget(currentTarget);
             }
         }
     }

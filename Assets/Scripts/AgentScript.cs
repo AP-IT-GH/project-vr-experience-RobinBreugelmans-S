@@ -15,6 +15,22 @@ namespace Assets.Scripts
         GameObject target;
         int maxShots = 20;
         int currentShotCount = 0;
+        Animator animator;
+
+        void Start()
+        {
+            // Get the Animator from a child GameObject
+            animator = GetComponentInChildren<Animator>();
+            Transform deagle = transform.Find("Deagle"); // get gun to make invisable
+            if (deagle != null)
+            {
+                Renderer deagleRenderer = deagle.GetComponent<Renderer>();
+                if (deagleRenderer != null)
+                {
+                    deagleRenderer.enabled = false;  // Makes Deagle invisible
+                }
+            }
+        }
 
         public override void OnEpisodeBegin()
         {
@@ -47,6 +63,7 @@ namespace Assets.Scripts
                 currentShotCount++;
                 SetReward(0.001f);
                 Debug.DrawRay(aiGun.transform.position, -aiGun.transform.right*fovDistance, Color.red);
+                animator.SetTrigger("Shoot");
                 if (Physics.Raycast(aiGun.transform.position, -aiGun.transform.right, out RaycastHit hit, fovDistance) && hit.transform.gameObject.layer == 6)
                 {
                     Debug.Log("Hit");

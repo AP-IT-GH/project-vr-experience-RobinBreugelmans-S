@@ -13,6 +13,9 @@ namespace Assets.Scripts
         [SerializeField] float maxX = 6;
         [SerializeField] float maxY = 1;
         [SerializeField] float maxZ = -25;
+        [SerializeField] float rotationX = 0;
+        [SerializeField] float rotationY = 90;
+        [SerializeField] float rotationZ = 0;
         private float x = 0;
         private float y = 0;
         private float z = 0;
@@ -28,7 +31,7 @@ namespace Assets.Scripts
             currentTarget = Instantiate(
                 obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)], 
                 position: new Vector3(x, y, z), 
-                Quaternion.Euler(0, 0, 0) // 90° Z rotation
+                Quaternion.Euler(rotationX, rotationY, rotationZ)
                 );
             this.GetComponentInChildren<AgentScript>().SetNewTarget(currentTarget);
         }
@@ -44,7 +47,7 @@ namespace Assets.Scripts
                 currentTarget = Instantiate(
                     obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)],
                     position: new Vector3(x, y, z),
-                    Quaternion.Euler(0, 0, 0) // 90° Z rotation
+                    Quaternion.Euler(rotationX, rotationY, rotationZ)
                     );
                 this.GetComponentInChildren<AgentScript>().SetNewTarget(currentTarget);
             }

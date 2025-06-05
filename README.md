@@ -1,5 +1,11 @@
 # Shooting Range in Unity - VR user interactie en Machine Learning object detectie
 
+Project en documentatie door:
+
+- Jarno Dierckx
+- Brent Van Daele
+- Robin Breugelmans
+
 ## Inleiding
 
 In deze tutorial behandelen we hoe VR en machine learning kunnen toegepast worden binnen Unity om een goede gebruikservaring van onze game te verkrijgen. Machinelearning en raycasting is een belangrijke techniek voor moderne games. Hiermee kunnen er zeer uitdagende games ontwikkeld worden die gamers aanspreken. We leggen uit hoe we deze raycasting, machine learning en VR kunnen implementeren in je eigen projecten.
@@ -139,11 +145,41 @@ In de start functie hebben we er ook voor gezorgd dat de gun prefab dat we gebru
 
 Nu we bij het bespreken van deze asset gekomen zijn, kunnen we hier dieper op in gaan. De asset zijn standaard animatie controller in niet zoals het moet voor onze situatie dus zullen we deze aanpassen zodat enkel de volgende 3 animaties overblijven:
 
-IMAGE
+![Animator](README_RESOURCES/Animator.png "Animator Config")
 
 Door aan de overgang van de idle naar de shoot animatie een trigger van "Shoot" te bevestigen hebben we deze mooi geïmplementeerd in de ML agent. Nu kunnen we het agent script aan het agent object (empty game object) hangen en de deagle prefab alsook de PBRCharacter prefab (van de Robot Hero : PBR HP Polyart asset) als children bevestigen aan de agent.
 
-IMAGE
+![Agent Component](README_RESOURCES/AgentComponent.png "Agent Component Config")
+
+Voor de rest van de agent settings baseren we ons op het gegeven principe van het vak "VR Experiences". Dit is met als uitzondering voor de het aantal steps in de yaml file, deze zullen we op volgende manier opstellen. We hebben ondervonden dat dit het beste resultaat leverde op ons apparaat en in onze implementatie.
+
+```yaml
+behaviors:
+  CubeAgent:
+    trainer_type: ppo
+    hyperparameters:
+      batch_size: 128
+      buffer_size: 1024
+      learning_rate: 3.0e-4
+      beta: 5.0e-4
+      epsilon: 0.2
+      lambd: 0.99
+      num_epoch: 5
+      learning_rate_schedule: linear
+      beta_schedule: constant
+      epsilon_schedule: linear
+    network_settings:
+      normalize: false
+      hidden_units: 128
+      num_layers: 2
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    max_steps: 200000
+    time_horizon: 64
+    summary_freq: 2000
+```
 
 #### Target-Controller
 

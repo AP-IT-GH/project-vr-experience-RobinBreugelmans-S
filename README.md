@@ -6,7 +6,7 @@ In deze tutorial behandelen we hoe VR en machine learning kunnen toegepast worde
 
 ## Samenvatting
 
-Na het doorlopen van deze tutorial weet je hoe je raycasting, machine learning en VR kan configureren en toepassen in je eigen projecten. Je bent in staat om dit tutorial project zelfstandig opnieuw op te bouwen en eventueel uitbreiden. Je krijgt inzicht over hoe raycasting kan gebruikt worden binnen een ml-agent, hoe een ml-agent geïntegreerd kan worden in een VR applicatie en hoe je een interactieve VR-game kunt ontwikkelen.
+Na het doorlopen van deze tutorial weet je hoe je raycasting, machine learning en VR kan configureren en toepassen in je eigen projecten, met behulp van de cursus "VR Experience". Je bent in staat om dit tutorial project zelfstandig opnieuw op te bouwen en eventueel uitbreiden. Je krijgt inzicht over hoe raycasting kan gebruikt worden binnen een ml-agent, hoe een ml-agent geïntegreerd kan worden in een VR applicatie en hoe je een interactieve VR-game kunt ontwikkelen.
 
 ## Methoden
 
@@ -27,13 +27,131 @@ Na het doorlopen van deze tutorial weet je hoe je raycasting, machine learning e
 
 Bij de opstart van het spel moet de speler het spel handmatig starten. Vervolgens krijgt de speler een beperkte tijd om zo veel mogelijk doelwitten te raken in de shooting range. De goal van het spel is voor de speler om een hogere score te behalen dan de ML-agent.
 
-Er9 wordt altijd één doelwit gegenereerd dat voor beiden de ML-agent en speler dient. Als de speler het doelwit mist, krijgt hij/zij geen straf, maar zal de ML-agent kan alsnog wel dit doelwit raken en zo de scoren stelen. wanneer de speler het doelwit wel raakt, ontvangt hij/zij een score afhankelijk van de kleur van het geraakte deel van het doelwit.
+Er wordt altijd één doelwit gegenereerd dat voor beiden de ML-agent en speler dient. Als de speler het doelwit mist, krijgt hij/zij geen straf, maar zal de ML-agent kan alsnog wel dit doelwit raken en zo de scoren stelen. wanneer de speler het doelwit wel raakt, ontvangt hij/zij een score afhankelijk van de kleur van het geraakte deel van het doelwit.
 
 Eens het doelwit geraakt is door de ML-agent of speler, verdwijnt het en wordt er automatisch een nieuw doelwit geplaatst. Het spel loopt door tot de bepaalde tijd verstreken is.
 
 ### ML-agent beloningen, acties en observaties
 
+Voor de ML-agent is het belangrijk de juiste keuzes te maken. Zo worden ze opgesplitst in typisch een 3 tal keuzes.
+
+#### Observaties
+
+Één van deze belangrijke keuzes is beslissen wat de agent allemaal kan zien en wat hij allemaal moet leren. Zo zijn we er bij dit project voor gegaan dat de agent het target zijn locatie weet staan om de training sneller en makkelijker te laten verlopen. Ook zullen we de agent zijn eigen rotatie als ook de "rechtdoor" richting van het geweer meegeven zodat hij altijd weet waar deze zich bevind. In onze prefab van het geweer dat gebruikt is, is de voorkant van het geweer echter:
+
+``` C#
+  sensor.AddObservation((-aiGun.transform.right).normalized);
+```
+
+Dit komt door de keuzes van de originele developer van deze asset.
+
+#### Acties en beloningen
+
+De agent zijn acties bestaan uit slechts 2 componenten, een continuous actie voor het roteren en een continuous actie voor het schieten. In onze "OnActionReceived" kunnen we dan volgende bewerkingen doen:
+
+```C#
+public override void OnActionReceived(ActionBuffers actions)
+{
+  float horizontal = actions.ContinuousActions[0];
+  float shoot = actions.ContinuousActions[1];
+
+  Debug.Log($"shoot: {shoot}, horizontal: {horizontal}");
+  transform.Rotate(Vector3.up * horizontal * rotationSpeed * Time.deltaTime);
+
+  SetReward(-0.001f);
+
+  if (shoot >= 0.5f && currentShotCount < maxShots)
+  {
+    Debug.Log("Shooting");
+    currentShotCount++;
+    SetReward(0.001f);
+    Debug.DrawRay(aiGun.transform.position, -aiGun.transform.right*fovDistance, Color.red);
+    animator.SetTrigger("Shoot");
+    if (Physics.Raycast(aiGun.transform.position, -aiGun.transform.right, out RaycastHit hit, fovDistance) && hit.transform.gameObject.layer == 6)
+    {
+      Debug.Log("Hit");
+      SetReward(2.0f);
+      ScoreScript.AddScoreML(hit.transform.gameObject.GetComponent<TargetScript>().Hit());
+      EndEpisode();
+    }
+  }
+  else if (shoot < 0.5f && currentShotCount < maxShots)
+  {
+    SetReward(-0.01f);
+  }
+  else
+  {
+    SetReward(-1.0f);
+    EndEpisode();
+  }
+}
+```
+
+Eerst worden de acties gelezen om deze verder te gebruiken in het programma. Zo zal de "horizontal" actie al onmiddellijk gebruikt worden voor het roteren van de agent. Bij elke rotatie krijgt de agent een minimale straf van 0.001 om het willekeurig en veel roteren te ontmoedigen. Vervolgens wordt de "shoot" actie onder handen genomen. Als de "shoot" variabele groter is dan 0.5 zullen we dit als echt schieten zien. Echter mag de agent maar een beperkt aantal keer schieten voor de episode eindigt. Zolang dit maximum niet bereikt is zullen we de "shoot" variable van hoger dan 0.5 ook echt laten schieten. Het aantal schoten word verhoogt en een debug lijn wordt getekend (dit maakt het gemakkelijker om de agent in het oog te houden). We zullen ook de animatie van onze animatiecontroller een trigger voor het schieten sturen, later hier meer over. Het schieten krijgt een zere kleine beloning voor het voorkomen dat de agent niet meer wilt schieten. Tenslotte zullen we controleren of een schot van het geweer wel degelijk het target raakt. Indien het geraakt word zullen we een grote beloning geven, het target vernietigen, de score optellen bij het globaal en de episode eindigen.
+
+Echter als de waarde van "shoot" kleiner is dan 0.5 zal dit als vals schot gezien worden. Tenslotte is er ook een clause voor de laatste optie, namelijk als currentShotCount groter is dan maxShots, dan zal de episode eindigen en als mislukt worden beschouwd met een straf van -1.0.
+
+#### Beloningen extra
+
+In de toekomst kan deze implementatie ook nog verbeterd worden door de beloningen nog beter te beheren. Zo kunnen we bijvoorbeeld de beloning wanneer "shoot" kleiner is dan 0.5 veranderen aangezien deze een beetje tegenstrijdig is.
+
 ### Objecten
+
+#### ML-agent
+
+Zoals hiervoor besproken heeft de ML-Agent de kennis van de target nodig om goed te functioneren. Daarom zullen we een extra functie toevoegen aan het agentScript zodat we een nieuwe target kunnen toewijzen via een extern script.
+
+```C#
+  public void SetNewTarget(GameObject target)
+  {
+    this.target = target;
+  }
+```
+
+Vervolgens gaan we ook de agent zijn standaard rotatie laten herinneren en resetten wanneer de episode eindigt.
+
+```C#
+void Start()
+{
+  // Get the Animator from a child GameObject
+  animator = GetComponentInChildren<Animator>();
+  Transform deagle = transform.Find("Deagle"); // get gun to make invisable
+  if (deagle != null)
+  {
+    Renderer deagleRenderer = deagle.GetComponent<Renderer>();
+    if (deagleRenderer != null)
+    {
+      deagleRenderer.enabled = false;  // Makes Deagle invisible
+    }
+  }
+}
+
+public override void OnEpisodeBegin()
+{
+  this.transform.localRotation = Quaternion.Euler(0, -90, 0);
+  this.currentShotCount = 0;
+}
+```
+
+Dit zorgt voor een snellere en vlottere training, maar als je nog een meer zelf lerende ai wil maken moet je dit niet doen, net zoals de target locatie.
+
+In de start functie hebben we er ook voor gezorgd dat de gun prefab dat we gebruiken voor de player en de logica onzichtbaar maken maar wel actief houden. We hebben er namelijk voor gekozen om een asset te gebruiken om de agent een leuke skin te geven. Echter om bij de gratis assets te blijven vonden we de "Robot Hero : PBR HP Polyart" het beste passen. Deze heeft een eigen geweer prefab waar al animaties voor beschikbaar zijn, vandaar onze keuze. De logica is nog altijd gebaseerd op de deagle prefab.
+
+Nu we bij het bespreken van deze asset gekomen zijn, kunnen we hier dieper op in gaan. De asset zijn standaard animatie controller in niet zoals het moet voor onze situatie dus zullen we deze aanpassen zodat enkel de volgende 3 animaties overblijven:
+
+IMAGE
+
+Door aan de overgang van de idle naar de shoot animatie een trigger van "Shoot" te bevestigen hebben we deze mooi geïmplementeerd in de ML agent. Nu kunnen we het agent script aan het agent object (empty game object) hangen en de deagle prefab alsook de PBRCharacter prefab (van de Robot Hero : PBR HP Polyart asset) als children bevestigen aan de agent.
+
+IMAGE
+
+#### Target-Controller
+
+#### Target
+
+#### Shooting range
+
+#### Gun
 
 ### Gedrag objecten
 

@@ -143,15 +143,15 @@ Dit zorgt voor een snellere en vlottere training, maar als je nog een meer zelf 
 
 In de start functie hebben we er ook voor gezorgd dat de gun prefab dat we gebruiken voor de player en de logica onzichtbaar maken maar wel actief houden. We hebben er namelijk voor gekozen om een asset te gebruiken om de agent een leuke skin te geven. Echter om bij de gratis assets te blijven vonden we de "Robot Hero : PBR HP Polyart" het beste passen. Deze heeft een eigen geweer prefab waar al animaties voor beschikbaar zijn, vandaar onze keuze. De logica is nog altijd gebaseerd op de deagle prefab.
 
-Nu we bij het bespreken van deze asset gekomen zijn, kunnen we hier dieper op in gaan. De asset zijn standaard animatie controller in niet zoals het moet voor onze situatie dus zullen we deze aanpassen zodat enkel de volgende 3 animaties overblijven:
+Nu we bij het bespreken van deze asset gekomen zijn, kunnen we hier dieper op in gaan. De asset zijn standaard animatie controller, die zich bevind in de volgende folder "Assets/SciFiWarriorPBRHPolyart/Animators", is niet zoals het moet voor onze situatie dus zullen we deze aanpassen zodat enkel de volgende 3 animaties overblijven:
 
 ![Animator](README_RESOURCES/Animator.png "Animator Config")
 
-Door aan de overgang van de idle naar de shoot animatie een trigger van "Shoot" te bevestigen hebben we deze mooi geïmplementeerd in de ML agent. Nu kunnen we het agent script aan het agent object (empty game object) hangen en de deagle prefab alsook de PBRCharacter prefab (van de Robot Hero : PBR HP Polyart asset) als children bevestigen aan de agent.
+Door aan de overgang van de idle naar de shoot animatie een trigger van "Shoot" te bevestigen hebben we deze mooi geïmplementeerd in de ML agent. Nu kunnen we het agent script aan het agent object (empty game object) hangen en de deagle prefab alsook de PBRCharacter prefab (van de Robot Hero : PBR HP Polyart asset) als children bevestigen aan de agent. Deze agent kan dan vervolgens in een prefab gemaakt worden om deze zo gemakkelijk terug te plaatsen in onze game waar nodig. *Het is mogelijk dat all materialen van de assets moeten geconverteerd worden naar Universal Render Pipeline*.
 
 ![Agent Component](README_RESOURCES/AgentComponent.png "Agent Component Config")
 
-Voor de rest van de agent settings baseren we ons op het gegeven principe van het vak "VR Experiences". Dit is met als uitzondering voor de het aantal steps in de yaml file, deze zullen we op volgende manier opstellen. We hebben ondervonden dat dit het beste resultaat leverde op ons apparaat en in onze implementatie.
+Voor de rest van de agent settings baseren we ons op het gegeven principe van het vak "VR Experiences". Dit is met als uitzondering de yaml file, deze zullen we op volgende manier opstellen. We hebben ondervonden dat dit het beste resultaat leverde op ons apparaat en in onze implementatie.
 
 ```yaml
 behaviors:
@@ -183,13 +183,119 @@ behaviors:
 
 #### Target-Controller
 
+De target controller, dat het parent object is van onze agent, is in onze game een empty game object dat het TargetController script krijgt toegewezen. In de trainings scene is dit het trainings veld zoals te zien is in de vorige paragraaf. Echter zal dit in onze game implementatie een empty game object zijn dat dit script krijgt, met als child de agent prefab.
+
+![TargetController](README_RESOURCES/TargetController.png "TargetController")
+
+**Het is hier zeer belangrijk, om met het plaatsen van de agent, de agent zijn rotatie NIET aan te passen.** De agent is namelijk getraind in deze specifieke rotatie en kan dus falen wanneer geroteerd. De beste optie is om de omgeving aan te passen aan de agent zijn rotatie.
+
+Vervolgens gaan we het target controller script coder op volgende manier:
+
+```C#
+using UnityEngine;
+using UnityEngine.Rendering;
+
+namespace Assets.Scripts
+{
+    public class TargetControllerScript : MonoBehaviour
+    {
+        [SerializeField] GameObject[] obstaclePrefabs; // the targets to look for
+
+        [SerializeField] float minX = -6;
+        [SerializeField] float minY = -2;
+        [SerializeField] float minZ = -5;
+        [SerializeField] float maxX = 6;
+        [SerializeField] float maxY = 1;
+        [SerializeField] float maxZ = -25;
+        [SerializeField] float rotationX = 0;
+        [SerializeField] float rotationY = 90;
+        [SerializeField] float rotationZ = 0;
+        private float x = 0;
+        private float y = 0;
+        private float z = 0;
+
+        GameObject currentTarget;
+
+        // Start is called once before the first execution of Update after the MonoBehaviour is created
+        void Start()
+        {
+            x = Random.Range(minX, maxX);
+            y = Random.Range(minY, maxY);
+            z = Random.Range(minZ, maxZ);
+            currentTarget = Instantiate(
+                obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)], 
+                position: new Vector3(x, y, z), 
+                Quaternion.Euler(rotationX, rotationY, rotationZ)
+                );
+            this.GetComponentInChildren<AgentScript>().SetNewTarget(currentTarget);
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            if (currentTarget == null)
+            {
+                x = Random.Range(minX, maxX);
+                y = Random.Range(minY, maxY);
+                z = Random.Range(minZ, maxZ);
+                currentTarget = Instantiate(
+                    obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)],
+                    position: new Vector3(x, y, z),
+                    Quaternion.Euler(rotationX, rotationY, rotationZ)
+                    );
+                this.GetComponentInChildren<AgentScript>().SetNewTarget(currentTarget);
+            }
+        }
+    }
+}
+```
+
+Deze controller is eigenlijk een zeer simpele logica voor onze targets op een willekeurige plaats the genereren binnen een bepaalde zone. Daarom zijn er een aantal "SerializeField" variabelen dat ons toelaten om deze zone in te stellen alsook de rotatie van het target (sinds we de agent niet kunnen roteren moeten we zorgen dat alles juist geroteerd staat). Dan zal de start functie het eerste target genereren en een random positie geven in onze gekozen zone. Echter is het mogelijk om meerdere targets te maken en genereren, zolang ze op **Layer 6** ingesteld staan (meer hierover bij Target). Eens een random gekozen target gegeneerd is zal deze ook toegewezen worden aan de ML-agent, wat ook meteen de verklaring is waarom het TargetController object (het empty game object dat dit script bevat) de parent is van de ML-agent prefab. Daarnaast is er nog een Update functie die elke frame zal checken for het huidige target destroyed is. Indien het destroyed is zal deze opnieuw het target genereren op dezelfde wijze als in de start functie.
+
+Tenslotte kunnen we de target controller ook configureren door het script toe te voegen en in te stellen. Hier kunnen we dan de SerializeField variabelen invullen zoals het past voor onze applicatie.
+
+![TargetControllerConfig](README_RESOURCES/TargetControllerConfig.PNG "TargetControllerConfig")
+
+De transform waarden van de zijn niet van groot belang zolang de ML-agent juist geplaatst is in de unity omgeving, **Behalve de rotatie! De rotatie van de agent moet onveranderd blijven t.o.v. de wereld oriëntatie!**
+
 #### Target
+
+Het target zelf is een vrij simpel design en kan ook veranderd worden in andere vormen naar wensen. Echter moet er dan wel een aanpassing gebeuren aan het script van het target, later hier meer over.
+
+Ons target bestaat uit meerdere delen om zo een beter verdeelde score te geven in verband met de accuraatheid van het schieten. Zo hebben we 3 individuele schijven die 1, 3 of 5 als score geven. Elk van deze schijven is een child van het main target object (dat een empty game object is). Dit target wordt een prefab en zal enkel als prefab meegegeven worden aan de TargetController zijn script!
+
+![Target](README_RESOURCES/Target.png "Target")
+
+De logica van het target is vrij simpel. Eens het target, of beter één van de schijven van dit target, geraakt wordt zal het hoofd target object (dus het parent object van de schijf dat geraakt is) vernietigt worden en een score terug gegeven worden. En dat is alles in het target script. Uiteraard zal de waarde voor de score per schijf meegegeven kunnen worden voor elk script van elke schijf.
+
+```C#
+using UnityEngine;
+using UnityEngine.UIElements;
+
+namespace Assets.Scripts
+{
+    public class TargetScript : MonoBehaviour
+    {
+        [SerializeField] short points = 1;
+
+        public short Hit()
+        {
+            Destroy(this.transform.parent.gameObject); // destroy the parent of the individual target circles
+            return points;
+        }
+    }
+}
+```
+
+Indien er gewenst wordt een ander target te gebruiken is dit mogelijk, maar moet de Destory codelijn aangepast worden zodat deze altijd verwijst naar het volledige target object.
+
+#### Score Script
+
+#### Scorebord
 
 #### Shooting range
 
 #### Gun
-
-### Gedrag objecten
 
 ### One-pager
 

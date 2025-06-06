@@ -33,7 +33,7 @@ Na het doorlopen van deze tutorial weet je hoe je raycasting, machine learning e
 
 Bij de opstart van het spel moet de speler het spel handmatig starten. Vervolgens krijgt de speler een beperkte tijd om zo veel mogelijk doelwitten te raken in de shooting range. De goal van het spel is voor de speler om een hogere score te behalen dan de ML-agent.
 
-Er wordt altijd één doelwit gegenereerd dat voor beiden de ML-agent en speler dient. Als de speler het doelwit mist, krijgt hij/zij geen straf, maar zal de ML-agent kan alsnog wel dit doelwit raken en zo de scoren stelen. wanneer de speler het doelwit wel raakt, ontvangt hij/zij een score afhankelijk van de kleur van het geraakte deel van het doelwit.
+Er wordt altijd één doelwit gegenereerd dat voor beiden de ML-agent en speler dient. Als de speler het doelwit mist, krijgt hij/zij geen straf, maar zal de ML-agent kan alsnog wel dit doelwit raken en zo de score stelen. wanneer de speler het doelwit wel raakt, ontvangt hij/zij een score afhankelijk van de kleur van het geraakte deel van het doelwit.
 
 Eens het doelwit geraakt is door de ML-agent of speler, verdwijnt het en wordt er automatisch een nieuw doelwit geplaatst. Het spel loopt door tot de bepaalde tijd verstreken is.
 
@@ -93,15 +93,15 @@ public override void OnActionReceived(ActionBuffers actions)
 }
 ```
 
-Eerst worden de acties gelezen om deze verder te gebruiken in het programma. Zo zal de "horizontal" actie al onmiddellijk gebruikt worden voor het roteren van de agent. Bij elke rotatie krijgt de agent een minimale straf van 0.001 om het willekeurig en veel roteren te ontmoedigen. Vervolgens wordt de "shoot" actie onder handen genomen. Als de "shoot" variabele groter is dan 0.5 zullen we dit als echt schieten zien. Echter mag de agent maar een beperkt aantal keer schieten voor de episode eindigt. Zolang dit maximum niet bereikt is zullen we de "shoot" variable van hoger dan 0.5 ook echt laten schieten. Het aantal schoten word verhoogt en een debug lijn wordt getekend (dit maakt het gemakkelijker om de agent in het oog te houden). We zullen ook de animatie van onze animatiecontroller een trigger voor het schieten sturen, later hier meer over. Het schieten krijgt een zere kleine beloning voor het voorkomen dat de agent niet meer wilt schieten. Tenslotte zullen we controleren of een schot van het geweer wel degelijk het target raakt. Indien het geraakt word zullen we een grote beloning geven, het target vernietigen, de score optellen bij het globaal en de episode eindigen.
+Eerst worden de acties gelezen om deze verder te gebruiken in het programma. Zo zal de "horizontal"-actie al onmiddellijk gebruikt worden voor het roteren van de agent. Bij elke rotatie krijgt de agent een minimale straf van 0.001 om het willekeurig en veel roteren te ontmoedigen. Vervolgens wordt de "shoot"-actie onder handen genomen. Als de "shoot"-variabele groter is dan 0.5 zullen we dit als echt schieten zien. Echter mag de agent maar een beperkt aantal keer schieten voor de episode eindigt. Zolang dit maximum niet bereikt is zullen we de "shoot"-variable van hoger dan 0.5 ook echt laten schieten. Het aantal schoten word verhoogt en een debug lijn wordt getekend (dit maakt het gemakkelijker om de agent in het oog te houden). We zullen ook de animatie van onze animatiecontroller een trigger voor het schieten sturen, later hier meer over. Het schieten krijgt een zere kleine beloning voor het voorkomen dat de agent niet meer wilt schieten. Tenslotte zullen we controleren of een schot van het geweer wel degelijk het target raakt. Indien het geraakt word zullen we een grote beloning geven, het target vernietigen, de score optellen bij het globaal en de episode eindigen.
 
 Echter als de waarde van "shoot" kleiner is dan 0.5 zal dit als vals schot gezien worden. Tenslotte is er ook een clause voor de laatste optie, namelijk als currentShotCount groter is dan maxShots, dan zal de episode eindigen en als mislukt worden beschouwd met een straf van -1.0.
 
 #### Beloningen extra
 
-In de toekomst kan deze implementatie ook nog verbeterd worden door de beloningen nog beter te beheren. Zo kunnen we bijvoorbeeld de beloning wanneer "shoot" kleiner is dan 0.5 veranderen aangezien deze een beetje tegenstrijdig is.
+In de toekomst kan deze implementatie ook nog verbeterd worden door de beloningen nog beter te beheren. Zo kunnen we bijvoorbeeld de beloning wanneer "shoot" kleiner is dan 0.5 veranderen aangezien deze omdat deze mogelijk niet in lijn ligt met het bedoelde gedrag.
 
-### Objecten
+### Objecten en hun gedrag
 
 #### ML-agent
 
@@ -147,7 +147,7 @@ Nu we bij het bespreken van deze asset gekomen zijn, kunnen we hier dieper op in
 
 ![Animator](README_RESOURCES/Animator.png "Animator Config")
 
-Door aan de overgang van de idle naar de shoot animatie een trigger van "Shoot" te bevestigen hebben we deze mooi geïmplementeerd in de ML agent. Nu kunnen we het agent script aan het agent object (empty game object) hangen en de deagle prefab alsook de PBRCharacter prefab (van de Robot Hero : PBR HP Polyart asset) als children bevestigen aan de agent. Deze agent kan dan vervolgens in een prefab gemaakt worden om deze zo gemakkelijk terug te plaatsen in onze game waar nodig. *Het is mogelijk dat all materialen van de assets moeten geconverteerd worden naar Universal Render Pipeline*.
+Door aan de overgang van de idle naar de shoot animatie een trigger van "Shoot" te bevestigen hebben we deze mooi geïmplementeerd in de ML agent. Nu kunnen we het agent script aan het agent object (empty game object) hangen en de deagle prefab alsook de PBRCharacter prefab (van de Robot Hero : PBR HP Polyart asset) als children bevestigen aan de agent. Deze agent kan dan vervolgens in een prefab gemaakt worden om deze zo gemakkelijk terug te plaatsen in onze game waar nodig. *De materialen van de assets moeten mogelijk geconverteerd worden naar de Universal Render Pipeline*.
 
 ![Agent Component](README_RESOURCES/AgentComponent.png "Agent Component Config")
 
@@ -287,7 +287,7 @@ namespace Assets.Scripts
 }
 ```
 
-Indien er gewenst wordt een ander target te gebruiken is dit mogelijk, maar moet de Destory codelijn aangepast worden zodat deze altijd verwijst naar het volledige target object.
+Indien er gewenst wordt een ander target te gebruiken is dit mogelijk, maar moet de "Destroy" codelijn aangepast worden zodat deze altijd verwijst naar het volledige target object.
 
 #### Score Script
 
@@ -299,15 +299,47 @@ Indien er gewenst wordt een ander target te gebruiken is dit mogelijk, maar moet
 
 ### One-pager
 
-### Afwijkingen one-pager
+### Afwijkingen van one-pager
 
 ## Resultaten
 
 ### Training
 
+Om de ML-agent goed getraind te krijgen moeten we natuurlijk meerdere belonging structuren en hyper parameters proberen. Zo hebben we er dus een heel groot aantal verschillende geprobeerd. Onderstaande afbeelding toont slechts een deel van onze trainingspogingen, maar bevat de beste resultaten.
+
+![AllTrainings](README_RESOURCES/AllTrainings.PNG "AllTrainings")
+
+Echter gaan we er uiteraard maar slechts één kiezen voor onze ML-agent. Om opzoek te gaan naar de best training hebben we besloten om volgende gedachten gang te ondersteunen:
+
+- zo lang mogelijk blijven leren
+- zo weinig variatie as mogelijk
+- zo hoog mogelijk op het einde
+
+Daarom zijn we uiteindelijk op volgende resultaat gekomen.
+
+![ChosenTraining](README_RESOURCES/ChosenTraining.PNG "ChosenTraining")
+
+Deze voldeed aan al onze eisen. Hij bleef stijgen voor zo lang mogelijk, had zeer weinig variatie naar het einde toe en was op het einde de grafiek met de hoogste reward.
+
 ### Waarnemingen
 
+In de grafiek van ons gekozen resultaat, namelijk de grafiek van CubeAgent11, zijn een aantal dingen op te merken in verband met het leren van de agent.
+
+![ChosenTraining](README_RESOURCES/ChosenTraining.PNG "ChosenTraining")
+
+Zo valt het op dat de grafiek in het negatieve begint. Dit betekent dat onze agent een heel groot aantal fouten maakte dat door onze beloningsstructuur bestraft wordt. Zo zal hij bijvoorbeeld overmatig geroteerd hebben.  Het volgende dat opvalt is dat variatie in het begin best wel groot is, te zien aan de donker grijze lijn dat op de grafiek staat tussen de x-as waarden van 20k en 140k. Dit betekent dat de agent nog best veel gokt en random acties uitvoert. Echter wordt deze variatie veel kleiner en stabieler na 140k stappen waar de agent zo goed als altijd de juiste handelingen doet. En zelfs daar blijft de agent zijn reward nog zachtjes stijgen wat betekent dat de agent bijna tot op het einde goed geleerd heeft. Tenslotte is er ook nog de opvallende dip rond 115k stappen. Deze dip betekent dat de agent durft af te wijken van eerder geleerd gedrag om alternatieven te verkennen om tot het beste resultaat te komen, zo zal hij niet vast blijven zitten op een valse "top" score. We kunnen in de kleine grafiek onderaan ook zien dat die dip overeen komt met een zeer lange episode lengte wat betekent dat de agent, door zijn gewaagde poging, het doelwit uiteindelijk niet raakte. De agent heeft zichzelf daarna opnieuw gecorrigeerd.
+
+De training vertoonde een positief leerproces met stabiele vooruitgang. Echter kan een ML-agent altijd verbeterd worden door een nog beter reward structuur en een betere set hyperparameters. Je kan ook de agent langer laten trainen met een iets lagere learning rate kiezen om hem stabieler te laten leren, maar dan moet je wel een pc/laptop hebben die het vereiste aantal stappen aankan (de laptop waar de ML-agent nu op getraind is kon maar tot 200k stappen).
+
 ## Conclusie
+
+In dit project ontwikkelden we een VR-shooting game in Unity waarin een machine learning-agent via raycasting leert concurreren met een menselijke speler.
+
+De resultaten van de agent waren positief en stabiel naar het einde toe. Zo bleef de agent voortdurend leren en consistente keuzes maken. Echter was onze agent alert en onderzocht alternatieve strategieën.
+
+Wat we persoonlijk uit de resultaten halen is dat de agent zeer goed aan het groeien is een veel potentieel heeft om nog te verbeteren mits andere configuraties. Echter moeten we wel een oog houden op zijn zijn afwijkende leerpogingen.
+
+We kunnen in de toekomst nog veel verbeteringen aanbrengen aan onze game. Zo kunnen we beter assets zoeken en gebruiken die beter bij elkaar passen. We kunnen eventueel een verhaallijn toevoegen of de game uitdagender maken met meer en andere targets. We kunnen de ML-agent ook verticaal laten navigeren en zo drie dimensionaal een uitdaging creëren. Tenslotte kunnen we ook de ml-agent meerdere keren toevoegen om zo een multi shooter spel te maken.
 
 ## Bronnen
 

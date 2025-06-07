@@ -363,6 +363,8 @@ public class ScoreScript : MonoBehaviour
 
 #### Gun
 
+![Gun](README_RESOURCES/Gun.png)
+
 Dit script is het script van het geweer van de speler, hier staat de code voor het vast te nemen en te schieten.
 In de shoot methode wordt er via raycasting bepaald waar het de kogel beland, als het op een object met layer 6 komt dan is het een target en dan wordt er score toegevoegd en de target verwijdert (via target.Hit()).
 De OnGrab en OnExit methodes worden aangeropen als je het geweer vastneemt of laat vallen.

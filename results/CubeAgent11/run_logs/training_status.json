@@ -2,22 +2,22 @@
     "CubeAgent": {
         "checkpoints": [
             {
-                "steps": 150001,
-                "file_path": "results\\CubeAgent11\\CubeAgent\\CubeAgent-150001.onnx",
-                "reward": 0.08424925106065767,
-                "creation_time": 1747504773.545853,
+                "steps": 200007,
+                "file_path": "results\\CubeAgent11\\CubeAgent\\CubeAgent-200007.onnx",
+                "reward": 1.9193725726183724,
+                "creation_time": 1747911547.3666213,
                 "auxillary_file_paths": [
-                    "results\\CubeAgent11\\CubeAgent\\CubeAgent-150001.pt"
+                    "results\\CubeAgent11\\CubeAgent\\CubeAgent-200007.pt"
                 ]
             }
         ],
         "final_checkpoint": {
-            "steps": 150001,
+            "steps": 200007,
             "file_path": "results\\CubeAgent11\\CubeAgent.onnx",
-            "reward": 0.08424925106065767,
-            "creation_time": 1747504773.545853,
+            "reward": 1.9193725726183724,
+            "creation_time": 1747911547.3666213,
             "auxillary_file_paths": [
-                "results\\CubeAgent11\\CubeAgent\\CubeAgent-150001.pt"
+                "results\\CubeAgent11\\CubeAgent\\CubeAgent-200007.pt"
             ]
         }
     },

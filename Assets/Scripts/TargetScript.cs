@@ -9,7 +9,7 @@ namespace Assets.Scripts
 
         public short Hit()
         {
-            Destroy(this.gameObject);
+            Destroy(this.transform.parent.gameObject); // destroy the parent of the individual target circles
             return points;
         }
     }

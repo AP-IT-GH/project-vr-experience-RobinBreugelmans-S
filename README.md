@@ -145,11 +145,11 @@ In de start functie hebben we er ook voor gezorgd dat de gun prefab dat we gebru
 
 Nu we bij het bespreken van deze asset gekomen zijn, kunnen we hier dieper op in gaan. De asset zijn standaard animatie controller, die zich bevind in de volgende folder "Assets/SciFiWarriorPBRHPolyart/Animators", is niet zoals het moet voor onze situatie dus zullen we deze aanpassen zodat enkel de volgende 3 animaties overblijven:
 
-![Animator](README_RESOURCES/Animator.png "Animator Config")
+![Animator](README_RESOURCES/Animator.jpg "Animator Config")
 
 Door aan de overgang van de idle naar de shoot animatie een trigger van "Shoot" te bevestigen hebben we deze mooi geïmplementeerd in de ML agent. Nu kunnen we het agent script aan het agent object (empty game object) hangen en de deagle prefab alsook de PBRCharacter prefab (van de Robot Hero : PBR HP Polyart asset) als children bevestigen aan de agent. Deze agent kan dan vervolgens in een prefab gemaakt worden om deze zo gemakkelijk terug te plaatsen in onze game waar nodig. *De materialen van de assets moeten mogelijk geconverteerd worden naar de Universal Render Pipeline*.
 
-![Agent Component](README_RESOURCES/AgentComponent.png "Agent Component Config")
+![Agent Component](README_RESOURCES/AgentComponent.jpg "Agent Component Config")
 
 Voor de rest van de agent settings baseren we ons op het gegeven principe van het vak "VR Experiences". Dit is met als uitzondering de yaml file, deze zullen we op volgende manier opstellen. We hebben ondervonden dat dit het beste resultaat leverde op ons apparaat en in onze implementatie.
 
@@ -185,7 +185,7 @@ behaviors:
 
 De target controller, dat het parent object is van onze agent, is in onze game een empty game object dat het TargetController script krijgt toegewezen. In de trainings scene is dit het trainings veld zoals te zien is in de vorige paragraaf. Echter zal dit in onze game implementatie een empty game object zijn dat dit script krijgt, met als child de agent prefab.
 
-![TargetController](README_RESOURCES/TargetController.png "TargetController")
+![TargetController](README_RESOURCES/TargetController.jpg "TargetController")
 
 **Het is hier zeer belangrijk, om met het plaatsen van de agent, de agent zijn rotatie NIET aan te passen.** De agent is namelijk getraind in deze specifieke rotatie en kan dus falen wanneer geroteerd. De beste optie is om de omgeving aan te passen aan de agent zijn rotatie.
 
@@ -254,7 +254,7 @@ Deze controller is eigenlijk een zeer simpele logica voor onze targets op een wi
 
 Tenslotte kunnen we de target controller ook configureren door het script toe te voegen en in te stellen. Hier kunnen we dan de SerializeField variabelen invullen zoals het past voor onze applicatie.
 
-![TargetControllerConfig](README_RESOURCES/TargetControllerConfig.png "TargetControllerConfig")
+![TargetControllerConfig](README_RESOURCES/TargetControllerConfig.jpg "TargetControllerConfig")
 
 De transform waarden van de zijn niet van groot belang zolang de ML-agent juist geplaatst is in de unity omgeving, **Behalve de rotatie! De rotatie van de agent moet onveranderd blijven t.o.v. de wereld oriëntatie!**
 
@@ -264,7 +264,7 @@ De target zelf is een vrij simpel design en kan ook veranderd worden in andere v
 
 Ons target bestaat uit meerdere delen om zo een beter verdeelde score te geven in verband met de accuraatheid van het schieten. Zo hebben we 3 individuele schijven die 1, 3 of 5 als score geven. Elk van deze schijven is een child van het main target object (dat een empty game object is). Dit target wordt een prefab en zal enkel als prefab meegegeven worden aan de TargetController zijn script!
 
-![Target](README_RESOURCES/Target.png "Target")
+![Target](README_RESOURCES/Target.jpg "Target")
 
 De logica van het target is vrij simpel. Eens het target, of beter één van de schijven van dit target, geraakt wordt zal het hoofd target object (dus het parent object van de schijf dat geraakt is) vernietigt worden en een score terug gegeven worden. En dat is alles in het target script. Uiteraard zal de waarde voor de score per schijf meegegeven kunnen worden voor elk script van elke schijf.
 
@@ -293,7 +293,7 @@ Indien er gewenst wordt een ander target te gebruiken is dit mogelijk, maar moet
 
 De scoreborden laten de score van de speler en de ML agent zien, ze staan achteraan de shooting range.
 
-![ScoreBoard](README_RESOURCES/ScoreBoard.png)
+![ScoreBoard](README_RESOURCES/ScoreBoard.jpg)
 
 Het scorebord laat altijd 3 cijfers zien.
 
@@ -364,7 +364,7 @@ public class ScoreScript : MonoBehaviour
 
 #### Gun
 
-![Gun](README_RESOURCES/Gun.png)
+![Gun](README_RESOURCES/Gun.jpg)
 
 Dit script is het script van het geweer van de speler, hier staat de code voor het vast te nemen en te schieten.
 In de shoot methode wordt er via raycasting bepaald waar het de kogel beland, als het op een object met layer 6 komt dan is het een target en dan wordt er score toegevoegd en de target verwijdert (via target.Hit()).
@@ -455,7 +455,7 @@ public class Gun : MonoBehaviour
 
 Om de ML-agent goed getraind te krijgen moeten we natuurlijk meerdere belonging structuren en hyper parameters proberen. Zo hebben we er dus een heel groot aantal verschillende geprobeerd. Onderstaande afbeelding toont slechts een deel van onze trainingspogingen, maar bevat de beste resultaten.
 
-![AllTrainings](README_RESOURCES/AllTrainings.png "AllTrainings")
+![AllTrainings](README_RESOURCES/AllTrainings.jpg "AllTrainings")
 
 Echter gaan we er uiteraard maar slechts één kiezen voor onze ML-agent. Om opzoek te gaan naar de best training hebben we besloten om volgende gedachten gang te ondersteunen:
 
@@ -465,7 +465,7 @@ Echter gaan we er uiteraard maar slechts één kiezen voor onze ML-agent. Om opz
 
 Daarom zijn we uiteindelijk op volgende resultaat gekomen.
 
-![ChosenTraining](README_RESOURCES/ChosenTraining.png "ChosenTraining")
+![ChosenTraining](README_RESOURCES/ChosenTraining.jpg "ChosenTraining")
 
 Deze voldeed aan al onze eisen. Hij bleef stijgen voor zo lang mogelijk, had zeer weinig variatie naar het einde toe en was op het einde de grafiek met de hoogste reward.
 
@@ -473,7 +473,7 @@ Deze voldeed aan al onze eisen. Hij bleef stijgen voor zo lang mogelijk, had zee
 
 In de grafiek van ons gekozen resultaat, namelijk de grafiek van CubeAgent11, zijn een aantal dingen op te merken in verband met het leren van de agent.
 
-![ChosenTraining](README_RESOURCES/ChosenTraining.png "ChosenTraining")
+![ChosenTraining](README_RESOURCES/ChosenTraining.jpg "ChosenTraining")
 
 Zo valt het op dat de grafiek in het negatieve begint. Dit betekent dat onze agent een heel groot aantal fouten maakte dat door onze beloningsstructuur bestraft wordt. Zo zal hij bijvoorbeeld overmatig geroteerd hebben.  Het volgende dat opvalt is dat variatie in het begin best wel groot is, te zien aan de donker grijze lijn dat op de grafiek staat tussen de x-as waarden van 20k en 140k. Dit betekent dat de agent nog best veel gokt en random acties uitvoert. Echter wordt deze variatie veel kleiner en stabieler na 140k stappen waar de agent zo goed als altijd de juiste handelingen doet. En zelfs daar blijft de agent zijn reward nog zachtjes stijgen wat betekent dat de agent bijna tot op het einde goed geleerd heeft. Tenslotte is er ook nog de opvallende dip rond 115k stappen. Deze dip betekent dat de agent durft af te wijken van eerder geleerd gedrag om alternatieven te verkennen om tot het beste resultaat te komen, zo zal hij niet vast blijven zitten op een valse "top" score. We kunnen in de kleine grafiek onderaan ook zien dat die dip overeen komt met een zeer lange episode lengte wat betekent dat de agent, door zijn gewaagde poging, het doelwit uiteindelijk niet raakte. De agent heeft zichzelf daarna opnieuw gecorrigeerd.
 

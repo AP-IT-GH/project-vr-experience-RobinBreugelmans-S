@@ -5,11 +5,17 @@ public class ScoreBoard : MonoBehaviour
 {
     [SerializeField]
     TextMeshPro tmp;
-    short score = 0;
+    int score = 0;
 
-    public void AddScore(short score)
+    public void AddScore(int score)
     {
         this.score += score;
+        updateText();
+    }
+
+    public void ResetScore()
+    {
+        this.score = 0;
         updateText();
     }
 

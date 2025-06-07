@@ -3,9 +3,12 @@ using static UnityEngine.InputSystem.InputAction;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit;
+using Assets.Scripts;
+using UnityEngine.SocialPlatforms.Impl;
 
 public class Gun : MonoBehaviour
 {
+    [SerializeField] ScoreScript score;
 
     public InputActionReference activateL;
     public InputActionReference activateR;
@@ -40,16 +43,16 @@ public class Gun : MonoBehaviour
 
     private void shoot()
     {
+        Debug.Log("player shot");
         //ammmo--;
         shotSound.Play();
-        RaycastHit hit;
-        if (Physics.Raycast(fire.position, transform.forward, out hit, 2048f)) //, maxDistance
+        if (Physics.Raycast(fire.position, transform.forward, out RaycastHit hit, 2048f)) //, maxDistance
         {
             //layer 6 = Target layer
             if (hit.transform.gameObject.layer == 6)
             {
-                //give points, etc.
                 print("hit target");
+                score.AddScorePlayer(hit.transform.gameObject.GetComponent<TargetScript>().Hit());
             }
             else
             {

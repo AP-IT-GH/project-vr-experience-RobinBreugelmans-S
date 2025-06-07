@@ -254,7 +254,7 @@ Deze controller is eigenlijk een zeer simpele logica voor onze targets op een wi
 
 Tenslotte kunnen we de target controller ook configureren door het script toe te voegen en in te stellen. Hier kunnen we dan de SerializeField variabelen invullen zoals het past voor onze applicatie.
 
-![TargetControllerConfig](README_RESOURCES/TargetControllerConfig.PNG "TargetControllerConfig")
+![TargetControllerConfig](README_RESOURCES/TargetControllerConfig.png "TargetControllerConfig")
 
 De transform waarden van de zijn niet van groot belang zolang de ML-agent juist geplaatst is in de unity omgeving, **Behalve de rotatie! De rotatie van de agent moet onveranderd blijven t.o.v. de wereld oriëntatie!**
 
@@ -290,6 +290,7 @@ namespace Assets.Scripts
 Indien er gewenst wordt een ander target te gebruiken is dit mogelijk, maar moet de "Destroy" codelijn aangepast worden zodat deze altijd verwijst naar het volledige target object.
 
 #### ScoreBoard
+
 De scoreborden laten de score van de speler en de ML agent zien, ze staan achteraan de shooting range.
 
 ![ScoreBoard](README_RESOURCES/ScoreBoard.png)
@@ -454,7 +455,7 @@ public class Gun : MonoBehaviour
 
 Om de ML-agent goed getraind te krijgen moeten we natuurlijk meerdere belonging structuren en hyper parameters proberen. Zo hebben we er dus een heel groot aantal verschillende geprobeerd. Onderstaande afbeelding toont slechts een deel van onze trainingspogingen, maar bevat de beste resultaten.
 
-![AllTrainings](README_RESOURCES/AllTrainings.PNG "AllTrainings")
+![AllTrainings](README_RESOURCES/AllTrainings.png "AllTrainings")
 
 Echter gaan we er uiteraard maar slechts één kiezen voor onze ML-agent. Om opzoek te gaan naar de best training hebben we besloten om volgende gedachten gang te ondersteunen:
 
@@ -464,7 +465,7 @@ Echter gaan we er uiteraard maar slechts één kiezen voor onze ML-agent. Om opz
 
 Daarom zijn we uiteindelijk op volgende resultaat gekomen.
 
-![ChosenTraining](README_RESOURCES/ChosenTraining.PNG "ChosenTraining")
+![ChosenTraining](README_RESOURCES/ChosenTraining.png "ChosenTraining")
 
 Deze voldeed aan al onze eisen. Hij bleef stijgen voor zo lang mogelijk, had zeer weinig variatie naar het einde toe en was op het einde de grafiek met de hoogste reward.
 
@@ -472,7 +473,7 @@ Deze voldeed aan al onze eisen. Hij bleef stijgen voor zo lang mogelijk, had zee
 
 In de grafiek van ons gekozen resultaat, namelijk de grafiek van CubeAgent11, zijn een aantal dingen op te merken in verband met het leren van de agent.
 
-![ChosenTraining](README_RESOURCES/ChosenTraining.PNG "ChosenTraining")
+![ChosenTraining](README_RESOURCES/ChosenTraining.png "ChosenTraining")
 
 Zo valt het op dat de grafiek in het negatieve begint. Dit betekent dat onze agent een heel groot aantal fouten maakte dat door onze beloningsstructuur bestraft wordt. Zo zal hij bijvoorbeeld overmatig geroteerd hebben.  Het volgende dat opvalt is dat variatie in het begin best wel groot is, te zien aan de donker grijze lijn dat op de grafiek staat tussen de x-as waarden van 20k en 140k. Dit betekent dat de agent nog best veel gokt en random acties uitvoert. Echter wordt deze variatie veel kleiner en stabieler na 140k stappen waar de agent zo goed als altijd de juiste handelingen doet. En zelfs daar blijft de agent zijn reward nog zachtjes stijgen wat betekent dat de agent bijna tot op het einde goed geleerd heeft. Tenslotte is er ook nog de opvallende dip rond 115k stappen. Deze dip betekent dat de agent durft af te wijken van eerder geleerd gedrag om alternatieven te verkennen om tot het beste resultaat te komen, zo zal hij niet vast blijven zitten op een valse "top" score. We kunnen in de kleine grafiek onderaan ook zien dat die dip overeen komt met een zeer lange episode lengte wat betekent dat de agent, door zijn gewaagde poging, het doelwit uiteindelijk niet raakte. De agent heeft zichzelf daarna opnieuw gecorrigeerd.
 

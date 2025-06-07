@@ -43,15 +43,12 @@ public class Gun : MonoBehaviour
 
     private void shoot()
     {
-        Debug.Log("player shot");
-        //ammmo--;
         shotSound.Play();
         if (Physics.Raycast(fire.position, transform.forward, out RaycastHit hit, 2048f)) //, maxDistance
         {
             //layer 6 = Target layer
             if (hit.transform.gameObject.layer == 6)
             {
-                print("hit target");
                 score.AddScorePlayer(hit.transform.gameObject.GetComponent<TargetScript>().Hit());
             }
             else

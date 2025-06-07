@@ -22,7 +22,7 @@ namespace Assets.Scripts
         {
             // Get the Animator from a child GameObject
             animator = GetComponentInChildren<Animator>();
-            Transform deagle = transform.Find("Deagle"); // get gun to make invisable
+            Transform deagle = transform.Find("Deagle"); // get gun to make invisible
             if (deagle != null)
             {
                 Renderer deagleRenderer = deagle.GetComponent<Renderer>();

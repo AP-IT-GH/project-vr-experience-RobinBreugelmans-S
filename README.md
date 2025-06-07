@@ -77,7 +77,7 @@ public override void OnActionReceived(ActionBuffers actions)
     {
       Debug.Log("Hit");
       SetReward(2.0f);
-      ScoreScript.AddScoreML(hit.transform.gameObject.GetComponent<TargetScript>().Hit());
+      score.AddScoreML(hit.transform.gameObject.GetComponent<TargetScript>().Hit());
       EndEpisode();
     }
   }
@@ -121,7 +121,7 @@ void Start()
 {
   // Get the Animator from a child GameObject
   animator = GetComponentInChildren<Animator>();
-  Transform deagle = transform.Find("Deagle"); // get gun to make invisable
+  Transform deagle = transform.Find("Deagle"); // get gun to make invisible
   if (deagle != null)
   {
     Renderer deagleRenderer = deagle.GetComponent<Renderer>();
@@ -260,7 +260,7 @@ De transform waarden van de zijn niet van groot belang zolang de ML-agent juist 
 
 #### Target
 
-Het target zelf is een vrij simpel design en kan ook veranderd worden in andere vormen naar wensen. Echter moet er dan wel een aanpassing gebeuren aan het script van het target, later hier meer over.
+De target zelf is een vrij simpel design en kan ook veranderd worden in andere vormen naar wensen. Echter moet er dan wel een aanpassing gebeuren aan het script van het target, later hier meer over.
 
 Ons target bestaat uit meerdere delen om zo een beter verdeelde score te geven in verband met de accuraatheid van het schieten. Zo hebben we 3 individuele schijven die 1, 3 of 5 als score geven. Elk van deze schijven is een child van het main target object (dat een empty game object is). Dit target wordt een prefab en zal enkel als prefab meegegeven worden aan de TargetController zijn script!
 
@@ -289,13 +289,158 @@ namespace Assets.Scripts
 
 Indien er gewenst wordt een ander target te gebruiken is dit mogelijk, maar moet de "Destroy" codelijn aangepast worden zodat deze altijd verwijst naar het volledige target object.
 
+#### ScoreBoard
+De scoreborden laten de score van de speler en de ML agent zien, ze staan achteraan de shooting range.
+
+![ScoreBoard](README_RESOURCES/ScoreBoard.png)
+
+Het scorebord laat altijd 3 cijfers zien.
+
+```cs
+public class ScoreBoard : MonoBehaviour
+{
+    [SerializeField]
+    TextMeshPro tmp;
+    int score = 0;
+
+    public void AddScore(int score)
+    {
+        this.score += score;
+        updateText();
+    }
+
+    public void ResetScore()
+    {
+        this.score = 0;
+        updateText();
+    }
+
+    void updateText()
+    {
+        tmp.text = $"<mspace=.6em>{score.ToString("D3")}</mspace>";
+    }
+}
+```
+
 #### Score Script
 
-#### Scorebord
+Dit script houdt de scores van de ML agent en de speler bij en update de scoreborden.
+
+```cs
+public class ScoreScript : MonoBehaviour
+{
+    int scoreML = 0;
+    int scorePlayer = 0;
+
+    [SerializeField]
+    ScoreBoard scoreBoardML;
+    [SerializeField]
+    ScoreBoard scoreBoardPlayer;
+
+    public void AddScorePlayer(int scoreToAdd)
+    {
+        scorePlayer += scoreToAdd;
+        scoreBoardPlayer.AddScore(scoreToAdd);
+    }
+
+    public void AddScoreML(int scoreToAdd)
+    {
+        scoreML += scoreToAdd;
+        scoreBoardML.AddScore(scoreToAdd);
+    }
+
+    public void ResetScores()
+    {
+        scoreML = 0;
+        scorePlayer = 0;
+        scoreBoardML.ResetScore();
+        scoreBoardPlayer.ResetScore();
+    }
+}
+```
 
 #### Shooting range
 
 #### Gun
+
+Dit script is het script van het geweer van de speler, hier staat de code voor het vast te nemen en te schieten.
+In de shoot methode wordt er via raycasting bepaald waar het de kogel beland, als het op een object met layer 6 komt dan is het een target en dan wordt er score toegevoegd en de target verwijdert (via target.Hit()).
+De OnGrab en OnExit methodes worden aangeropen als je het geweer vastneemt of laat vallen.
+
+```cs
+public class Gun : MonoBehaviour
+{
+    [SerializeField] ScoreScript score;
+
+    public InputActionReference activateL;
+    public InputActionReference activateR;
+    public NearFarInteractor interactor = null;
+    private bool selected = false;
+
+    [SerializeField]
+    private Material bulletHoleMaterial;
+    [SerializeField]
+    private AudioSource shotSound;
+
+    private Transform fire;
+
+    void Start()
+    {
+        interactor.selectEntered.AddListener(OnGrab);
+        interactor.selectExited.AddListener(OnExit);
+
+        activateL.action.performed += Use;
+        activateR.action.performed += Use;
+
+        fire = transform.GetChild(1).transform;
+    }
+
+    private void Use(CallbackContext callback)
+    {
+        if (!selected)
+            return;
+
+        shoot();
+    }
+
+    private void shoot()
+    {
+        shotSound.Play();
+        if (Physics.Raycast(fire.position, transform.forward, out RaycastHit hit, 2048f)) //, maxDistance
+        {
+            //layer 6 = Target layer
+            if (hit.transform.gameObject.layer == 6)
+            {
+                score.AddScorePlayer(hit.transform.gameObject.GetComponent<TargetScript>().Hit());
+            }
+            else
+            {
+                GameObject bulletHole = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                Destroy(bulletHole.GetComponent<Collider>());
+                bulletHole.transform.rotation = Quaternion.FromToRotation(Vector3.back, hit.normal);
+                bulletHole.transform.localScale = new Vector3(.11f, .11f, 1f);
+                bulletHole.GetComponent<Renderer>().material = bulletHoleMaterial;
+                bulletHole.transform.position = hit.point + hit.normal * .001f;
+                Destroy(bulletHole, 90); //90s
+            }
+        }
+    }
+
+    private void OnExit(SelectExitEventArgs arg0)
+    {
+        selected = false;
+    }
+
+    private void OnGrab(SelectEnterEventArgs arg0)
+    {
+        if (arg0.interactableObject.transform.gameObject == gameObject)
+        {
+            selected = true;
+
+        }
+    }
+}
+```
 
 ### One-pager
 

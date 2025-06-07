@@ -4,23 +4,32 @@ namespace Assets.Scripts
 {
     public class ScoreScript : MonoBehaviour
     {
-        static int scoreML = 0;
-        static int scorePlayer = 0;
+        int scoreML = 0;
+        int scorePlayer = 0;
 
-        public static void AddScorePlayer(int scoreToAdd)
+        [SerializeField]
+        ScoreBoard scoreBoardML;
+        [SerializeField]
+        ScoreBoard scoreBoardPlayer;
+
+        public void AddScorePlayer(int scoreToAdd)
         {
             scorePlayer += scoreToAdd;
+            scoreBoardPlayer.AddScore(scoreToAdd);
         }
 
-        public static void AddScoreML(int scoreToAdd)
+        public void AddScoreML(int scoreToAdd)
         {
             scoreML += scoreToAdd;
+            scoreBoardML.AddScore(scoreToAdd);
         }
 
-        public static void ResetScores()
+        public void ResetScores()
         {
             scoreML = 0;
             scorePlayer = 0;
+            scoreBoardML.ResetScore();
+            scoreBoardPlayer.ResetScore();
         }
     }
 }

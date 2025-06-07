@@ -16,6 +16,7 @@ namespace Assets.Scripts
         int maxShots = 20;
         int currentShotCount = 0;
         Animator animator;
+        [SerializeField] ScoreScript score;
 
         void Start()
         {
@@ -52,7 +53,7 @@ namespace Assets.Scripts
         {
             float horizontal = actions.ContinuousActions[0];
             float shoot = actions.ContinuousActions[1];
-            Debug.Log($"shoot: {shoot}, horizontal: {horizontal}");
+            //Debug.Log($"shoot: {shoot}, horizontal: {horizontal}");
 
             transform.Rotate(Vector3.up * horizontal * rotationSpeed * Time.deltaTime);
             SetReward(-0.001f);
@@ -68,7 +69,7 @@ namespace Assets.Scripts
                 {
                     Debug.Log("Hit");
                     SetReward(2.0f);
-                    ScoreScript.AddScoreML(hit.transform.gameObject.GetComponent<TargetScript>().Hit());
+                    score.AddScoreML(hit.transform.gameObject.GetComponent<TargetScript>().Hit());
                     EndEpisode();
                 }
             }

@@ -6,6 +6,8 @@ public class PauseManager : MonoBehaviour
 
     public bool IsPaused { get; private set; } = false;
 
+    [SerializeField] private GameObject pauseSign; // Assign in Inspector
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -21,11 +23,20 @@ public class PauseManager : MonoBehaviour
     public void TogglePause()
     {
         IsPaused = !IsPaused;
-        Debug.Log($"Pause Toggled. IsPaused = {IsPaused}");
+        UpdatePauseState();
     }
 
     public void SetPause(bool value)
     {
         IsPaused = value;
+        UpdatePauseState();
+    }
+
+    private void UpdatePauseState()
+    {
+        if (pauseSign != null)
+        {
+            pauseSign.SetActive(IsPaused);
+        }
     }
 }

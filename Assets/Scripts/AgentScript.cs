@@ -12,6 +12,7 @@ namespace Assets.Scripts
         [SerializeField] float rotationSpeed = 50.0f;
         [SerializeField] LayerMask layerOfTarget;
         [SerializeField] float fovDistance = 90f;
+        [SerializeField] TimerController timerController;
         GameObject target;
         int maxShots = 20;
         int currentShotCount = 0;
@@ -51,6 +52,11 @@ namespace Assets.Scripts
 
         public override void OnActionReceived(ActionBuffers actions)
         {
+            if (!timerController.TimerRunning)
+            {
+                // AI should do nothing if timer isn't running
+                return;
+            }
             float horizontal = actions.ContinuousActions[0];
             float shoot = actions.ContinuousActions[1];
             //Debug.Log($"shoot: {shoot}, horizontal: {horizontal}");

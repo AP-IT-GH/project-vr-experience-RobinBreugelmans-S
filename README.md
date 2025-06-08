@@ -58,42 +58,46 @@ De agent zijn acties bestaan uit slechts 2 componenten, een continuous actie voo
 ```C#
 public override void OnActionReceived(ActionBuffers actions)
 {
-  float horizontal = actions.ContinuousActions[0];
-  float shoot = actions.ContinuousActions[1];
-
-  Debug.Log($"shoot: {shoot}, horizontal: {horizontal}");
-  transform.Rotate(Vector3.up * horizontal * rotationSpeed * Time.deltaTime);
-
-  SetReward(-0.001f);
-
-  if (shoot >= 0.5f && currentShotCount < maxShots)
-  {
-    Debug.Log("Shooting");
-    currentShotCount++;
-    SetReward(0.001f);
-    Debug.DrawRay(aiGun.transform.position, -aiGun.transform.right*fovDistance, Color.red);
-    animator.SetTrigger("Shoot");
-    if (Physics.Raycast(aiGun.transform.position, -aiGun.transform.right, out RaycastHit hit, fovDistance) && hit.transform.gameObject.layer == 6)
+    if (!timerController.TimerRunning)
     {
-      Debug.Log("Hit");
-      SetReward(2.0f);
-      ScoreScript.AddScoreML(hit.transform.gameObject.GetComponent<TargetScript>().Hit());
-      EndEpisode();
+        // AI should do nothing if timer isn't running
+        return;
     }
-  }
-  else if (shoot < 0.5f && currentShotCount < maxShots)
-  {
-    SetReward(-0.01f);
-  }
-  else
-  {
-    SetReward(-1.0f);
-    EndEpisode();
-  }
+    float horizontal = actions.ContinuousActions[0];
+    float shoot = actions.ContinuousActions[1];
+    //Debug.Log($"shoot: {shoot}, horizontal: {horizontal}");
+
+    transform.Rotate(Vector3.up * horizontal * rotationSpeed * Time.deltaTime);
+    SetReward(-0.001f);
+
+    if (shoot >= 0.5f && currentShotCount < maxShots)
+    {
+        Debug.Log("Shooting");
+        currentShotCount++;
+        SetReward(0.001f);
+        Debug.DrawRay(aiGun.transform.position, -aiGun.transform.right*fovDistance, Color.red);
+        animator.SetTrigger("Shoot");
+        if (Physics.Raycast(aiGun.transform.position, -aiGun.transform.right, out RaycastHit hit, fovDistance) && hit.transform.gameObject.layer == 6)
+        {
+            Debug.Log("Hit");
+            SetReward(2.0f);
+            score.AddScoreML(hit.transform.gameObject.GetComponent<TargetScript>().Hit());
+            EndEpisode();
+        }
+    }
+    else if (shoot < 0.5f && currentShotCount < maxShots)
+    {
+        SetReward(-0.01f);
+    }
+    else
+    {
+        SetReward(-1.0f);
+        EndEpisode();
+    }
 }
 ```
-
-Eerst worden de acties gelezen om deze verder te gebruiken in het programma. Zo zal de "horizontal"-actie al onmiddellijk gebruikt worden voor het roteren van de agent. Bij elke rotatie krijgt de agent een minimale straf van 0.001 om het willekeurig en veel roteren te ontmoedigen. Vervolgens wordt de "shoot"-actie onder handen genomen. Als de "shoot"-variabele groter is dan 0.5 zullen we dit als echt schieten zien. Echter mag de agent maar een beperkt aantal keer schieten voor de episode eindigt. Zolang dit maximum niet bereikt is zullen we de "shoot"-variable van hoger dan 0.5 ook echt laten schieten. Het aantal schoten word verhoogt en een debug lijn wordt getekend (dit maakt het gemakkelijker om de agent in het oog te houden). We zullen ook de animatie van onze animatiecontroller een trigger voor het schieten sturen, later hier meer over. Het schieten krijgt een zere kleine beloning voor het voorkomen dat de agent niet meer wilt schieten. Tenslotte zullen we controleren of een schot van het geweer wel degelijk het target raakt. Indien het geraakt word zullen we een grote beloning geven, het target vernietigen, de score optellen bij het globaal en de episode eindigen.
+Eerst wordt gekeken of er een timer is aan het lopen. Als dit niet het geval is gebeurt er niets.
+Dan worden de acties gelezen om deze verder te gebruiken in het programma. Zo zal de "horizontal"-actie al onmiddellijk gebruikt worden voor het roteren van de agent. Bij elke rotatie krijgt de agent een minimale straf van 0.001 om het willekeurig en veel roteren te ontmoedigen. Vervolgens wordt de "shoot"-actie onder handen genomen. Als de "shoot"-variabele groter is dan 0.5 zullen we dit als echt schieten zien. Echter mag de agent maar een beperkt aantal keer schieten voor de episode eindigt. Zolang dit maximum niet bereikt is zullen we de "shoot"-variable van hoger dan 0.5 ook echt laten schieten. Het aantal schoten word verhoogt en een debug lijn wordt getekend (dit maakt het gemakkelijker om de agent in het oog te houden). We zullen ook de animatie van onze animatiecontroller een trigger voor het schieten sturen, later hier meer over. Het schieten krijgt een zere kleine beloning voor het voorkomen dat de agent niet meer wilt schieten. Tenslotte zullen we controleren of een schot van het geweer wel degelijk het target raakt. Indien het geraakt word zullen we een grote beloning geven, het target vernietigen, de score optellen bij het globaal en de episode eindigen.
 
 Echter als de waarde van "shoot" kleiner is dan 0.5 zal dit als vals schot gezien worden. Tenslotte is er ook een clause voor de laatste optie, namelijk als currentShotCount groter is dan maxShots, dan zal de episode eindigen en als mislukt worden beschouwd met een straf van -1.0.
 
@@ -121,7 +125,7 @@ void Start()
 {
   // Get the Animator from a child GameObject
   animator = GetComponentInChildren<Animator>();
-  Transform deagle = transform.Find("Deagle"); // get gun to make invisable
+  Transform deagle = transform.Find("Deagle"); // get gun to make invisible
   if (deagle != null)
   {
     Renderer deagleRenderer = deagle.GetComponent<Renderer>();
@@ -145,11 +149,11 @@ In de start functie hebben we er ook voor gezorgd dat de gun prefab dat we gebru
 
 Nu we bij het bespreken van deze asset gekomen zijn, kunnen we hier dieper op in gaan. De asset zijn standaard animatie controller, die zich bevind in de volgende folder "Assets/SciFiWarriorPBRHPolyart/Animators", is niet zoals het moet voor onze situatie dus zullen we deze aanpassen zodat enkel de volgende 3 animaties overblijven:
 
-![Animator](README_RESOURCES/Animator.png "Animator Config")
+![Animator](README_RESOURCES/Animator.jpg "Animator Config")
 
 Door aan de overgang van de idle naar de shoot animatie een trigger van "Shoot" te bevestigen hebben we deze mooi geïmplementeerd in de ML agent. Nu kunnen we het agent script aan het agent object (empty game object) hangen en de deagle prefab alsook de PBRCharacter prefab (van de Robot Hero : PBR HP Polyart asset) als children bevestigen aan de agent. Deze agent kan dan vervolgens in een prefab gemaakt worden om deze zo gemakkelijk terug te plaatsen in onze game waar nodig. *De materialen van de assets moeten mogelijk geconverteerd worden naar de Universal Render Pipeline*.
 
-![Agent Component](README_RESOURCES/AgentComponent.png "Agent Component Config")
+![Agent Component](README_RESOURCES/AgentComponent.jpg "Agent Component Config")
 
 Voor de rest van de agent settings baseren we ons op het gegeven principe van het vak "VR Experiences". Dit is met als uitzondering de yaml file, deze zullen we op volgende manier opstellen. We hebben ondervonden dat dit het beste resultaat leverde op ons apparaat en in onze implementatie.
 
@@ -185,7 +189,7 @@ behaviors:
 
 De target controller, dat het parent object is van onze agent, is in onze game een empty game object dat het TargetController script krijgt toegewezen. In de trainings scene is dit het trainings veld zoals te zien is in de vorige paragraaf. Echter zal dit in onze game implementatie een empty game object zijn dat dit script krijgt, met als child de agent prefab.
 
-![TargetController](README_RESOURCES/TargetController.png "TargetController")
+![TargetController](README_RESOURCES/TargetController.jpg "TargetController")
 
 **Het is hier zeer belangrijk, om met het plaatsen van de agent, de agent zijn rotatie NIET aan te passen.** De agent is namelijk getraind in deze specifieke rotatie en kan dus falen wanneer geroteerd. De beste optie is om de omgeving aan te passen aan de agent zijn rotatie.
 
@@ -254,17 +258,17 @@ Deze controller is eigenlijk een zeer simpele logica voor onze targets op een wi
 
 Tenslotte kunnen we de target controller ook configureren door het script toe te voegen en in te stellen. Hier kunnen we dan de SerializeField variabelen invullen zoals het past voor onze applicatie.
 
-![TargetControllerConfig](README_RESOURCES/TargetControllerConfig.PNG "TargetControllerConfig")
+![TargetControllerConfig](README_RESOURCES/TargetControllerConfig.jpg "TargetControllerConfig")
 
 De transform waarden van de zijn niet van groot belang zolang de ML-agent juist geplaatst is in de unity omgeving, **Behalve de rotatie! De rotatie van de agent moet onveranderd blijven t.o.v. de wereld oriëntatie!**
 
 #### Target
 
-Het target zelf is een vrij simpel design en kan ook veranderd worden in andere vormen naar wensen. Echter moet er dan wel een aanpassing gebeuren aan het script van het target, later hier meer over.
+De target zelf is een vrij simpel design en kan ook veranderd worden in andere vormen naar wensen. Echter moet er dan wel een aanpassing gebeuren aan het script van het target, later hier meer over.
 
 Ons target bestaat uit meerdere delen om zo een beter verdeelde score te geven in verband met de accuraatheid van het schieten. Zo hebben we 3 individuele schijven die 1, 3 of 5 als score geven. Elk van deze schijven is een child van het main target object (dat een empty game object is). Dit target wordt een prefab en zal enkel als prefab meegegeven worden aan de TargetController zijn script!
 
-![Target](README_RESOURCES/Target.png "Target")
+![Target](README_RESOURCES/Target.jpg "Target")
 
 De logica van het target is vrij simpel. Eens het target, of beter één van de schijven van dit target, geraakt wordt zal het hoofd target object (dus het parent object van de schijf dat geraakt is) vernietigt worden en een score terug gegeven worden. En dat is alles in het target script. Uiteraard zal de waarde voor de score per schijf meegegeven kunnen worden voor elk script van elke schijf.
 
@@ -279,25 +283,347 @@ namespace Assets.Scripts
         [SerializeField] short points = 1;
 
         public short Hit()
-        {
-            Destroy(this.transform.parent.gameObject); // destroy the parent of the individual target circles
-            return points;
-        }
+{
+    if (!PauseManager.Instance.IsPaused)
+    {
+        Destroy(this.transform.parent.gameObject); // destroy the parent of the individual target circles
+        return points;
+    }
+    else
+    {
+        return 0;
+    }
+    
+}
     }
 }
 ```
 
-Indien er gewenst wordt een ander target te gebruiken is dit mogelijk, maar moet de "Destroy" codelijn aangepast worden zodat deze altijd verwijst naar het volledige target object.
+Indien er gewenst wordt een ander target te gebruiken is dit mogelijk, maar moet de "Destroy" codelijn aangepast worden zodat deze altijd verwijst naar het volledige target object. Als het spel gepauzeerd is kan het target ook niet worden geraakt.
+
+#### ScoreBoard
+
+De scoreborden laten de score van de speler en de ML agent zien, ze staan achteraan de shooting range.
+
+![ScoreBoard](README_RESOURCES/ScoreBoard.jpg)
+
+Het scorebord laat altijd 3 cijfers zien.
+
+```cs
+public class ScoreBoard : MonoBehaviour
+{
+    [SerializeField]
+    TextMeshPro tmp;
+    int score = 0;
+
+    public void AddScore(int score)
+    {
+        this.score += score;
+        updateText();
+    }
+
+    public void ResetScore()
+    {
+        this.score = 0;
+        updateText();
+    }
+
+    void updateText()
+    {
+        tmp.text = $"<mspace=.6em>{score.ToString("D3")}</mspace>";
+    }
+}
+```
 
 #### Score Script
 
-#### Scorebord
+Dit script houdt de scores van de ML agent en de speler bij en update de scoreborden.
+
+```cs
+public class ScoreScript : MonoBehaviour
+{
+    int scoreML = 0;
+    int scorePlayer = 0;
+
+    [SerializeField]
+    ScoreBoard scoreBoardML;
+    [SerializeField]
+    ScoreBoard scoreBoardPlayer;
+
+    public void AddScorePlayer(int scoreToAdd)
+    {
+        scorePlayer += scoreToAdd;
+        scoreBoardPlayer.AddScore(scoreToAdd);
+    }
+
+    public void AddScoreML(int scoreToAdd)
+    {
+        scoreML += scoreToAdd;
+        scoreBoardML.AddScore(scoreToAdd);
+    }
+
+    public void ResetScores()
+    {
+        scoreML = 0;
+        scorePlayer = 0;
+        scoreBoardML.ResetScore();
+        scoreBoardPlayer.ResetScore();
+    }
+}
+```
+#### TimerController script
+Dit script beheert de timer op de clock dat zich in het begin van het spel links van de speler begeeft.
+```cs
+public class TimerController : MonoBehaviour
+{
+    public float timerDuration = 60f;
+    private float timer;
+    public bool TimerRunning { get; private set; } = false;
+
+    private TextMeshPro text; // Text component reference
+    [SerializeField] private ScoreScript scoreScript;
+
+    void Start()
+    {
+        text = GetComponent<TextMeshPro>();
+        timer = timerDuration;
+        UpdateText();
+    }
+
+    public void StartTimer()
+    {
+        timer = timerDuration;
+        TimerRunning = true;
+
+        if (scoreScript != null)
+        {
+            scoreScript.ResetScores();
+        }
+        /*else
+        {
+            Debug.LogWarning("ScoreScript not assigned in TimerController.");
+        }*/
+    }
+
+    void Update()
+    {
+        if (TimerRunning)
+        {
+            timer -= Time.deltaTime;
+            if (timer <= 0)
+            {
+                timer = 0;
+                TimerRunning = false;
+            }
+            UpdateText();
+        }
+    }
+
+    void UpdateText()
+    {
+        if (text != null)
+        {
+            text.text = timer.ToString("F1"); // Show one decimal place
+        }
+    }
+}
+```
+StartTimer() zet de timer gelijk aan timerDuration, wat normaal 60 seconden is. Het reset ook de scores op beide scoreborden.
+Update() zorgt dat de timer aftelt en UpdateText() zorgt ervoor dat de text op de clock de nieuwe resterende tijd weergeeft.
+
+#### TimerResetButton script
+
+```cs
+[SerializeField] TimerController timerController;
+
+public void ResetTimer()
+{
+    timerController.StartTimer();
+}
+```
+Heeft als enige functie ResetTimer(), wat de StartTimer() functie van TimerController.cs oproept.
+
+#### PauseManager script
+
+```cs
+public class PauseManager : MonoBehaviour
+{
+    public static PauseManager Instance { get; private set; }
+
+    public bool IsPaused { get; private set; } = false;
+
+    [SerializeField] private GameObject pauseSign; // Assign in Inspector
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
+    }
+
+    public void TogglePause()
+    {
+        IsPaused = !IsPaused;
+        UpdatePauseState();
+    }
+
+    public void SetPause(bool value)
+    {
+        IsPaused = value;
+        UpdatePauseState();
+    }
+
+    private void UpdatePauseState()
+    {
+        if (pauseSign != null)
+        {
+            pauseSign.SetActive(IsPaused);
+        }
+    }
+}
+```
+Dit script word door enkele andere scripts gebruikt om te kijken of het spel gepauzeerd is of niet. Het zet ook het pauze bord in het spel actief of inactief als de juiste functie word aangeroepen.
+
+#### PauseInputHandler script
+```cs
+public class PauseInputHandler : MonoBehaviour
+{
+    private XRControls controls;
+
+    void Awake()
+    {
+        controls = new XRControls();
+    }
+
+    void OnEnable()
+    {
+        controls.Game.Pause.performed += OnPausePressed;
+        controls.Game.Enable();
+    }
+
+    void OnDisable()
+    {
+        controls.Game.Pause.performed -= OnPausePressed;
+        controls.Game.Disable();
+    }
+
+    private void OnPausePressed(InputAction.CallbackContext context)
+    {
+        PauseManager.Instance.TogglePause();
+    }
+}
+```
+
+Dit zorgt ervoor dat als de secondaire knop op de rechtse controller wordt ingedrukt, het spel pauzeerd.
+In XR Device Controller Controls(Input Actions Editor) is er een Action Map "Game" toegevoegd met daarin een Action "Pause". Dit zorgt ervoor dat de juiste knop op de controller aan de pauzeer functie is gekoppeld
 
 #### Shooting range
 
 #### Gun
 
+![Gun](README_RESOURCES/Gun.jpg)
+
+Dit script is het script van het geweer van de speler, hier staat de code voor het vast te nemen en te schieten.
+In de shoot methode wordt er via raycasting bepaald waar het de kogel beland, als het op een object met layer 6 komt dan is het een target en dan wordt er score toegevoegd en de target verwijdert (via target.Hit()).
+De OnGrab en OnExit methodes worden aangeropen als je het geweer vastneemt of laat vallen.
+
+```cs
+public class Gun : MonoBehaviour
+{
+    [SerializeField] ScoreScript score;
+
+    public InputActionReference activateL;
+    public InputActionReference activateR;
+    public NearFarInteractor interactor = null;
+    private bool selected = false;
+
+    [SerializeField]
+    private Material bulletHoleMaterial;
+    [SerializeField]
+    private AudioSource shotSound;
+
+    private Transform fire;
+
+    void Start()
+    {
+        interactor.selectEntered.AddListener(OnGrab);
+        interactor.selectExited.AddListener(OnExit);
+
+        activateL.action.performed += Use;
+        activateR.action.performed += Use;
+
+        fire = transform.GetChild(1).transform;
+    }
+
+    private void Use(CallbackContext callback)
+    {
+        if (!selected)
+            return;
+
+        shoot();
+    }
+
+    private void shoot()
+    {
+        shotSound.Play();
+        if (Physics.Raycast(fire.position, transform.forward, out RaycastHit hit, 2048f)) //, maxDistance
+        {
+            //layer 6 = Target layer
+            if (hit.transform.gameObject.layer == 6)
+            {
+                score.AddScorePlayer(hit.transform.gameObject.GetComponent<TargetScript>().Hit());
+            }
+            else
+            {
+                GameObject bulletHole = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                Destroy(bulletHole.GetComponent<Collider>());
+                bulletHole.transform.rotation = Quaternion.FromToRotation(Vector3.back, hit.normal);
+                bulletHole.transform.localScale = new Vector3(.11f, .11f, 1f);
+                bulletHole.GetComponent<Renderer>().material = bulletHoleMaterial;
+                bulletHole.transform.position = hit.point + hit.normal * .001f;
+                Destroy(bulletHole, 90); //90s
+            }
+        }
+    }
+
+    private void OnExit(SelectExitEventArgs arg0)
+    {
+        selected = false;
+    }
+
+    private void OnGrab(SelectEnterEventArgs arg0)
+    {
+        if (arg0.interactableObject.transform.gameObject == gameObject)
+        {
+            selected = true;
+
+        }
+    }
+}
+```
+
 ### One-pager
+1 V AI Shooting Range
+Dierckx Jarno, Breugelmans Robin en Van Daele Brent
+
+Het spel is een competitie tegen een AI-tegenstander waar de speler en de AI-agent een zo hoog mogelijke score moeten behalen. De speler kan punten verdienen door in de range op het doelwit te schieten, en krijgt zo meer of minder punten afhankelijk van waar het doelwit werd geraakt.
+De shooting range zelf is dan ook de enige scene in het spel, en bestaat uit een gebouw met daarin een geweer voor de speler, de AI en het doelwit.
+De simulatie start zodra de timer wordt gestart. Beide de speler en de AI moeten dan tegelijkertijd op een target schieten. Het doelwit veranderd na iedere hit van positie en de score wordt in real-time weergegeven op een scorebord achteraan de ruimte. Als de tijdslimiet verloopt worden de scores vergeleken en wordt de winnaar aangeduid. De speler heeft nadien de optie om opnieuw te spelen.
+
+Waarom AI?
+De AI-tegenstander introduceert een competitief element dat de speler motiveert om beter te mikken en sneller te reageren. In tegenstelling tot een eenvoudige scoreteller zonder tegenstander, zorgt de AI voor een levendige en dynamische uitdaging. Voor deze toepassing gebruiken we een Single-Agent Reinforcement Learning AI, waarbij de agent getraind is om te mikken en te schieten op een manier die menselijke prestaties nabootst en overstijgt.
+
+Waarom VR?
+Een VR simulatie maakt het leuker om met een geweer te schieten. En ondanks dat er enkele schietbanen in België zijn, maken de meeste mensen er geen gewoonte van om één te bezoeken.
+Dit spel kan zo een ervaring nabootsen vanuit het comfort dat de speler thuis zelf heeft. Door de 3D-diepte en de mogelijkheid om met echte bewegingen te richten, wordt het spel fysiek interactiever en natuurlijker dan via traditionele schermen.
+
+Interactiemodel tussen speler en systeem
+De speler kan vrij rondkijken en bewegen binnen de ruimte van de shooting range. Interactie gebeurt voornamelijk via de handcontrollers: het oppakken en richten van het wapen en het vuren. Scores worden automatisch toegekend op basis van waar het doelwit geraakt wordt. Daarnaast is er visuele feedback via een scorebord en timer. De AI-agent voert zelfstandig acties uit op basis van zijn "beslissingen", zodat het aanvoelt als een echte tegenstander. Deze interactie creëert een meeslepende simulatie die zowel leuk als leerzaam is.
 
 ### Afwijkingen van one-pager
 
@@ -307,7 +633,7 @@ Indien er gewenst wordt een ander target te gebruiken is dit mogelijk, maar moet
 
 Om de ML-agent goed getraind te krijgen moeten we natuurlijk meerdere belonging structuren en hyper parameters proberen. Zo hebben we er dus een heel groot aantal verschillende geprobeerd. Onderstaande afbeelding toont slechts een deel van onze trainingspogingen, maar bevat de beste resultaten.
 
-![AllTrainings](README_RESOURCES/AllTrainings.PNG "AllTrainings")
+![AllTrainings](README_RESOURCES/AllTrainings.jpg "AllTrainings")
 
 Echter gaan we er uiteraard maar slechts één kiezen voor onze ML-agent. Om opzoek te gaan naar de best training hebben we besloten om volgende gedachten gang te ondersteunen:
 
@@ -317,7 +643,7 @@ Echter gaan we er uiteraard maar slechts één kiezen voor onze ML-agent. Om opz
 
 Daarom zijn we uiteindelijk op volgende resultaat gekomen.
 
-![ChosenTraining](README_RESOURCES/ChosenTraining.PNG "ChosenTraining")
+![ChosenTraining](README_RESOURCES/ChosenTraining.jpg "ChosenTraining")
 
 Deze voldeed aan al onze eisen. Hij bleef stijgen voor zo lang mogelijk, had zeer weinig variatie naar het einde toe en was op het einde de grafiek met de hoogste reward.
 
@@ -325,7 +651,7 @@ Deze voldeed aan al onze eisen. Hij bleef stijgen voor zo lang mogelijk, had zee
 
 In de grafiek van ons gekozen resultaat, namelijk de grafiek van CubeAgent11, zijn een aantal dingen op te merken in verband met het leren van de agent.
 
-![ChosenTraining](README_RESOURCES/ChosenTraining.PNG "ChosenTraining")
+![ChosenTraining](README_RESOURCES/ChosenTraining.jpg "ChosenTraining")
 
 Zo valt het op dat de grafiek in het negatieve begint. Dit betekent dat onze agent een heel groot aantal fouten maakte dat door onze beloningsstructuur bestraft wordt. Zo zal hij bijvoorbeeld overmatig geroteerd hebben.  Het volgende dat opvalt is dat variatie in het begin best wel groot is, te zien aan de donker grijze lijn dat op de grafiek staat tussen de x-as waarden van 20k en 140k. Dit betekent dat de agent nog best veel gokt en random acties uitvoert. Echter wordt deze variatie veel kleiner en stabieler na 140k stappen waar de agent zo goed als altijd de juiste handelingen doet. En zelfs daar blijft de agent zijn reward nog zachtjes stijgen wat betekent dat de agent bijna tot op het einde goed geleerd heeft. Tenslotte is er ook nog de opvallende dip rond 115k stappen. Deze dip betekent dat de agent durft af te wijken van eerder geleerd gedrag om alternatieven te verkennen om tot het beste resultaat te komen, zo zal hij niet vast blijven zitten op een valse "top" score. We kunnen in de kleine grafiek onderaan ook zien dat die dip overeen komt met een zeer lange episode lengte wat betekent dat de agent, door zijn gewaagde poging, het doelwit uiteindelijk niet raakte. De agent heeft zichzelf daarna opnieuw gecorrigeerd.
 
@@ -378,3 +704,4 @@ We kunnen in de toekomst nog veel verbeteringen aanbrengen aan onze game. Zo kun
 - Wikipedia contributors. (2025, March 5). Field of view. Wikipedia. Retrieved June 5, 2025, from <https://en.wikipedia.org/wiki/Field_of_view>
 - Peeters, T. (2025). VR Experience [Cursusmateriaal, AP Hogeschool]. Persoonlijke lessen en oefenopdrachten gebruikt als referentie en basis voor implementatie.
 - Peeters, T. (2023). 3D Game Programming [Cursusmateriaal, AP Hogeschool]. Gebruikt voor codevoorbeelden, technische inzichten en referentie tijdens projectontwikkeling.
+- Philipp. (2017, May 18). Target range [3D model]. Sketchfab. <https://sketchfab.com/3d-models/target-range-45c07cbdfa3e49d594fdc2dd6c2940ea>. Het origin 3d-model voor de scene.

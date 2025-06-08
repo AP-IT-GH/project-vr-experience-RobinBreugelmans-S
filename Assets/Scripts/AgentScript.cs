@@ -18,6 +18,8 @@ namespace Assets.Scripts
         int currentShotCount = 0;
         Animator animator;
         [SerializeField] ScoreScript score;
+        [SerializeField] AudioSource shotSound;
+
 
         void Start()
         {
@@ -66,6 +68,7 @@ namespace Assets.Scripts
 
             if (shoot >= 0.5f && currentShotCount < maxShots)
             {
+                shotSound.Play();
                 Debug.Log("Shooting");
                 currentShotCount++;
                 SetReward(0.001f);

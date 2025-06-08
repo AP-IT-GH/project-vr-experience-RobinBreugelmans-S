@@ -2149,6 +2149,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1007789631}
     - target: {fileID: 7093800225664073736, guid: 8d429e1867d578940a00bed931a7649a, type: 3}
+      propertyPath: shotSound
+      value: 
+      objectReference: {fileID: 1724858568}
+    - target: {fileID: 7093800225664073736, guid: 8d429e1867d578940a00bed931a7649a, type: 3}
       propertyPath: timerController
       value: 
       objectReference: {fileID: 1456737948}

@@ -58,25 +58,27 @@ De agent zijn acties bestaan uit slechts 2 componenten, een continuous actie voo
 ```C#
 public override void OnActionReceived(ActionBuffers actions)
 {
-    if (!timerController.TimerRunning)
+    if (!timerController.TimerRunning || PauseManager.Instance.IsPaused)
     {
-        // AI should do nothing if timer isn't running
+    // AI should do nothing if timer isn't running
         return;
     }
     float horizontal = actions.ContinuousActions[0];
     float shoot = actions.ContinuousActions[1];
     //Debug.Log($"shoot: {shoot}, horizontal: {horizontal}");
-
+    
     transform.Rotate(Vector3.up * horizontal * rotationSpeed * Time.deltaTime);
     SetReward(-0.001f);
-
+    
     if (shoot >= 0.5f && currentShotCount < maxShots)
     {
+        shotSound.Play();
         Debug.Log("Shooting");
         currentShotCount++;
         SetReward(0.001f);
         Debug.DrawRay(aiGun.transform.position, -aiGun.transform.right*fovDistance, Color.red);
         animator.SetTrigger("Shoot");
+
         if (Physics.Raycast(aiGun.transform.position, -aiGun.transform.right, out RaycastHit hit, fovDistance) && hit.transform.gameObject.layer == 6)
         {
             Debug.Log("Hit");
@@ -96,6 +98,7 @@ public override void OnActionReceived(ActionBuffers actions)
     }
 }
 ```
+
 Eerst wordt gekeken of er een timer is aan het lopen. Als dit niet het geval is gebeurt er niets.
 Dan worden de acties gelezen om deze verder te gebruiken in het programma. Zo zal de "horizontal"-actie al onmiddellijk gebruikt worden voor het roteren van de agent. Bij elke rotatie krijgt de agent een minimale straf van 0.001 om het willekeurig en veel roteren te ontmoedigen. Vervolgens wordt de "shoot"-actie onder handen genomen. Als de "shoot"-variabele groter is dan 0.5 zullen we dit als echt schieten zien. Echter mag de agent maar een beperkt aantal keer schieten voor de episode eindigt. Zolang dit maximum niet bereikt is zullen we de "shoot"-variable van hoger dan 0.5 ook echt laten schieten. Het aantal schoten word verhoogt en een debug lijn wordt getekend (dit maakt het gemakkelijker om de agent in het oog te houden). We zullen ook de animatie van onze animatiecontroller een trigger voor het schieten sturen, later hier meer over. Het schieten krijgt een zere kleine beloning voor het voorkomen dat de agent niet meer wilt schieten. Tenslotte zullen we controleren of een schot van het geweer wel degelijk het target raakt. Indien het geraakt word zullen we een grote beloning geven, het target vernietigen, de score optellen bij het globaal en de episode eindigen.
 
@@ -371,8 +374,11 @@ public class ScoreScript : MonoBehaviour
     }
 }
 ```
+
 #### TimerController script
+
 Dit script beheert de timer op de clock dat zich in het begin van het spel links van de speler begeeft.
+
 ```cs
 public class TimerController : MonoBehaviour
 {
@@ -428,6 +434,7 @@ public class TimerController : MonoBehaviour
     }
 }
 ```
+
 StartTimer() zet de timer gelijk aan timerDuration, wat normaal 60 seconden is. Het reset ook de scores op beide scoreborden.
 Update() zorgt dat de timer aftelt en UpdateText() zorgt ervoor dat de text op de clock de nieuwe resterende tijd weergeeft.
 
@@ -441,6 +448,7 @@ public void ResetTimer()
     timerController.StartTimer();
 }
 ```
+
 Heeft als enige functie ResetTimer(), wat de StartTimer() functie van TimerController.cs oproept.
 
 #### PauseManager script
@@ -487,9 +495,11 @@ public class PauseManager : MonoBehaviour
     }
 }
 ```
+
 Dit script word door enkele andere scripts gebruikt om te kijken of het spel gepauzeerd is of niet. Het zet ook het pauze bord in het spel actief of inactief als de juiste functie word aangeroepen.
 
 #### PauseInputHandler script
+
 ```cs
 public class PauseInputHandler : MonoBehaviour
 {
@@ -608,6 +618,7 @@ public class Gun : MonoBehaviour
 ```
 
 ### One-pager
+
 1 V AI Shooting Range
 Dierckx Jarno, Breugelmans Robin en Van Daele Brent
 
@@ -624,8 +635,6 @@ Dit spel kan zo een ervaring nabootsen vanuit het comfort dat de speler thuis ze
 
 Interactiemodel tussen speler en systeem
 De speler kan vrij rondkijken en bewegen binnen de ruimte van de shooting range. Interactie gebeurt voornamelijk via de handcontrollers: het oppakken en richten van het wapen en het vuren. Scores worden automatisch toegekend op basis van waar het doelwit geraakt wordt. Daarnaast is er visuele feedback via een scorebord en timer. De AI-agent voert zelfstandig acties uit op basis van zijn "beslissingen", zodat het aanvoelt als een echte tegenstander. Deze interactie creëert een meeslepende simulatie die zowel leuk als leerzaam is.
-
-### Afwijkingen van one-pager
 
 ## Resultaten
 

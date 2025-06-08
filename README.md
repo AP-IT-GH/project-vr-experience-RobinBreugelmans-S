@@ -283,15 +283,23 @@ namespace Assets.Scripts
         [SerializeField] short points = 1;
 
         public short Hit()
-        {
-            Destroy(this.transform.parent.gameObject); // destroy the parent of the individual target circles
-            return points;
-        }
+{
+    if (!PauseManager.Instance.IsPaused)
+    {
+        Destroy(this.transform.parent.gameObject); // destroy the parent of the individual target circles
+        return points;
+    }
+    else
+    {
+        return 0;
+    }
+    
+}
     }
 }
 ```
 
-Indien er gewenst wordt een ander target te gebruiken is dit mogelijk, maar moet de "Destroy" codelijn aangepast worden zodat deze altijd verwijst naar het volledige target object.
+Indien er gewenst wordt een ander target te gebruiken is dit mogelijk, maar moet de "Destroy" codelijn aangepast worden zodat deze altijd verwijst naar het volledige target object. Als het spel gepauzeerd is kan het target ook niet worden geraakt.
 
 #### ScoreBoard
 
@@ -434,6 +442,57 @@ public void ResetTimer()
 }
 ```
 Heeft als enige functie ResetTimer(), wat de StartTimer() functie van TimerController.cs oproept.
+
+#### PauseManager script
+
+```cs
+public class PauseManager : MonoBehaviour
+{
+    public static PauseManager Instance { get; private set; }
+
+    public bool IsPaused { get; private set; } = false;
+
+    public void TogglePause()
+    {
+        IsPaused = !IsPaused;
+        Debug.Log($"Pause Toggled. IsPaused = {IsPaused}");
+    }
+}
+```
+Dit script word door enkele andere scripts gebruikt om te kijken of het spel gepauzeerd is of niet.
+
+#### PauseInputHandler script
+```cs
+public class PauseInputHandler : MonoBehaviour
+{
+    private XRControls controls;
+
+    void Awake()
+    {
+        controls = new XRControls();
+    }
+
+    void OnEnable()
+    {
+        controls.Game.Pause.performed += OnPausePressed;
+        controls.Game.Enable();
+    }
+
+    void OnDisable()
+    {
+        controls.Game.Pause.performed -= OnPausePressed;
+        controls.Game.Disable();
+    }
+
+    private void OnPausePressed(InputAction.CallbackContext context)
+    {
+        PauseManager.Instance.TogglePause();
+    }
+}
+```
+
+Dit zorgt ervoor dat als de secondaire knop op de rechtse controller wordt ingedrukt, het spel pauzeerd.
+In XR Device Controller Controls(Input Actions Editor) is er een Action Map "Game" toegevoegd met daarin een Action "Pause". Dit zorgt ervoor dat de juiste knop op de controller aan de pauzeer functie is gekoppeld
 
 #### Shooting range
 

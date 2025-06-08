@@ -27,10 +27,10 @@ public class TimerController : MonoBehaviour
         {
             scoreScript.ResetScores();
         }
-        else
+        /*else
         {
             Debug.LogWarning("ScoreScript not assigned in TimerController.");
-        }
+        }*/
     }
 
     void Update()

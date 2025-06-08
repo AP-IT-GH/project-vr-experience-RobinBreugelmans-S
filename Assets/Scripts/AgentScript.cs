@@ -52,7 +52,7 @@ namespace Assets.Scripts
 
         public override void OnActionReceived(ActionBuffers actions)
         {
-            if (!timerController.TimerRunning)
+            if (!timerController.TimerRunning || PauseManager.Instance.IsPaused)
             {
                 // AI should do nothing if timer isn't running
                 return;

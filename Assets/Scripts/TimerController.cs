@@ -35,7 +35,7 @@ public class TimerController : MonoBehaviour
 
     void Update()
     {
-        if (TimerRunning)
+        if (TimerRunning && !PauseManager.Instance.IsPaused)
         {
             timer -= Time.deltaTime;
             if (timer <= 0)

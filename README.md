@@ -452,14 +452,42 @@ public class PauseManager : MonoBehaviour
 
     public bool IsPaused { get; private set; } = false;
 
+    [SerializeField] private GameObject pauseSign; // Assign in Inspector
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            Instance = this;
+        }
+    }
+
     public void TogglePause()
     {
         IsPaused = !IsPaused;
-        Debug.Log($"Pause Toggled. IsPaused = {IsPaused}");
+        UpdatePauseState();
+    }
+
+    public void SetPause(bool value)
+    {
+        IsPaused = value;
+        UpdatePauseState();
+    }
+
+    private void UpdatePauseState()
+    {
+        if (pauseSign != null)
+        {
+            pauseSign.SetActive(IsPaused);
+        }
     }
 }
 ```
-Dit script word door enkele andere scripts gebruikt om te kijken of het spel gepauzeerd is of niet.
+Dit script word door enkele andere scripts gebruikt om te kijken of het spel gepauzeerd is of niet. Het zet ook het pauze bord in het spel actief of inactief als de juiste functie word aangeroepen.
 
 #### PauseInputHandler script
 ```cs

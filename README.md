@@ -58,42 +58,46 @@ De agent zijn acties bestaan uit slechts 2 componenten, een continuous actie voo
 ```C#
 public override void OnActionReceived(ActionBuffers actions)
 {
-  float horizontal = actions.ContinuousActions[0];
-  float shoot = actions.ContinuousActions[1];
-
-  Debug.Log($"shoot: {shoot}, horizontal: {horizontal}");
-  transform.Rotate(Vector3.up * horizontal * rotationSpeed * Time.deltaTime);
-
-  SetReward(-0.001f);
-
-  if (shoot >= 0.5f && currentShotCount < maxShots)
-  {
-    Debug.Log("Shooting");
-    currentShotCount++;
-    SetReward(0.001f);
-    Debug.DrawRay(aiGun.transform.position, -aiGun.transform.right*fovDistance, Color.red);
-    animator.SetTrigger("Shoot");
-    if (Physics.Raycast(aiGun.transform.position, -aiGun.transform.right, out RaycastHit hit, fovDistance) && hit.transform.gameObject.layer == 6)
+    if (!timerController.TimerRunning)
     {
-      Debug.Log("Hit");
-      SetReward(2.0f);
-      score.AddScoreML(hit.transform.gameObject.GetComponent<TargetScript>().Hit());
-      EndEpisode();
+        // AI should do nothing if timer isn't running
+        return;
     }
-  }
-  else if (shoot < 0.5f && currentShotCount < maxShots)
-  {
-    SetReward(-0.01f);
-  }
-  else
-  {
-    SetReward(-1.0f);
-    EndEpisode();
-  }
+    float horizontal = actions.ContinuousActions[0];
+    float shoot = actions.ContinuousActions[1];
+    //Debug.Log($"shoot: {shoot}, horizontal: {horizontal}");
+
+    transform.Rotate(Vector3.up * horizontal * rotationSpeed * Time.deltaTime);
+    SetReward(-0.001f);
+
+    if (shoot >= 0.5f && currentShotCount < maxShots)
+    {
+        Debug.Log("Shooting");
+        currentShotCount++;
+        SetReward(0.001f);
+        Debug.DrawRay(aiGun.transform.position, -aiGun.transform.right*fovDistance, Color.red);
+        animator.SetTrigger("Shoot");
+        if (Physics.Raycast(aiGun.transform.position, -aiGun.transform.right, out RaycastHit hit, fovDistance) && hit.transform.gameObject.layer == 6)
+        {
+            Debug.Log("Hit");
+            SetReward(2.0f);
+            score.AddScoreML(hit.transform.gameObject.GetComponent<TargetScript>().Hit());
+            EndEpisode();
+        }
+    }
+    else if (shoot < 0.5f && currentShotCount < maxShots)
+    {
+        SetReward(-0.01f);
+    }
+    else
+    {
+        SetReward(-1.0f);
+        EndEpisode();
+    }
 }
 ```
-
-Eerst worden de acties gelezen om deze verder te gebruiken in het programma. Zo zal de "horizontal"-actie al onmiddellijk gebruikt worden voor het roteren van de agent. Bij elke rotatie krijgt de agent een minimale straf van 0.001 om het willekeurig en veel roteren te ontmoedigen. Vervolgens wordt de "shoot"-actie onder handen genomen. Als de "shoot"-variabele groter is dan 0.5 zullen we dit als echt schieten zien. Echter mag de agent maar een beperkt aantal keer schieten voor de episode eindigt. Zolang dit maximum niet bereikt is zullen we de "shoot"-variable van hoger dan 0.5 ook echt laten schieten. Het aantal schoten word verhoogt en een debug lijn wordt getekend (dit maakt het gemakkelijker om de agent in het oog te houden). We zullen ook de animatie van onze animatiecontroller een trigger voor het schieten sturen, later hier meer over. Het schieten krijgt een zere kleine beloning voor het voorkomen dat de agent niet meer wilt schieten. Tenslotte zullen we controleren of een schot van het geweer wel degelijk het target raakt. Indien het geraakt word zullen we een grote beloning geven, het target vernietigen, de score optellen bij het globaal en de episode eindigen.
+Eerst wordt gekeken of er een timer is aan het lopen. Als dit niet het geval is gebeurt er niets.
+Dan worden de acties gelezen om deze verder te gebruiken in het programma. Zo zal de "horizontal"-actie al onmiddellijk gebruikt worden voor het roteren van de agent. Bij elke rotatie krijgt de agent een minimale straf van 0.001 om het willekeurig en veel roteren te ontmoedigen. Vervolgens wordt de "shoot"-actie onder handen genomen. Als de "shoot"-variabele groter is dan 0.5 zullen we dit als echt schieten zien. Echter mag de agent maar een beperkt aantal keer schieten voor de episode eindigt. Zolang dit maximum niet bereikt is zullen we de "shoot"-variable van hoger dan 0.5 ook echt laten schieten. Het aantal schoten word verhoogt en een debug lijn wordt getekend (dit maakt het gemakkelijker om de agent in het oog te houden). We zullen ook de animatie van onze animatiecontroller een trigger voor het schieten sturen, later hier meer over. Het schieten krijgt een zere kleine beloning voor het voorkomen dat de agent niet meer wilt schieten. Tenslotte zullen we controleren of een schot van het geweer wel degelijk het target raakt. Indien het geraakt word zullen we een grote beloning geven, het target vernietigen, de score optellen bij het globaal en de episode eindigen.
 
 Echter als de waarde van "shoot" kleiner is dan 0.5 zal dit als vals schot gezien worden. Tenslotte is er ook een clause voor de laatste optie, namelijk als currentShotCount groter is dan maxShots, dan zal de episode eindigen en als mislukt worden beschouwd met een straf van -1.0.
 
@@ -359,6 +363,77 @@ public class ScoreScript : MonoBehaviour
     }
 }
 ```
+#### TimerController script
+Dit script beheert de timer op de clock dat zich in het begin van het spel links van de speler begeeft.
+```cs
+public class TimerController : MonoBehaviour
+{
+    public float timerDuration = 60f;
+    private float timer;
+    public bool TimerRunning { get; private set; } = false;
+
+    private TextMeshPro text; // Text component reference
+    [SerializeField] private ScoreScript scoreScript;
+
+    void Start()
+    {
+        text = GetComponent<TextMeshPro>();
+        timer = timerDuration;
+        UpdateText();
+    }
+
+    public void StartTimer()
+    {
+        timer = timerDuration;
+        TimerRunning = true;
+
+        if (scoreScript != null)
+        {
+            scoreScript.ResetScores();
+        }
+        /*else
+        {
+            Debug.LogWarning("ScoreScript not assigned in TimerController.");
+        }*/
+    }
+
+    void Update()
+    {
+        if (TimerRunning)
+        {
+            timer -= Time.deltaTime;
+            if (timer <= 0)
+            {
+                timer = 0;
+                TimerRunning = false;
+            }
+            UpdateText();
+        }
+    }
+
+    void UpdateText()
+    {
+        if (text != null)
+        {
+            text.text = timer.ToString("F1"); // Show one decimal place
+        }
+    }
+}
+```
+StartTimer() zet de timer gelijk aan timerDuration, wat normaal 60 seconden is. Het reset ook de scores op beide scoreborden.
+Update() zorgt dat de timer aftelt en UpdateText() zorgt ervoor dat de text op de clock de nieuwe resterende tijd weergeeft.
+
+#### TimerResetButton script
+
+```cs
+[SerializeField] TimerController timerController;
+
+public void ResetTimer()
+{
+    timerController.StartTimer();
+}
+```
+Heeft als enige functie ResetTimer(), wat de StartTimer() functie van TimerController.cs oproept.
 
 #### Shooting range
 
@@ -526,3 +601,4 @@ We kunnen in de toekomst nog veel verbeteringen aanbrengen aan onze game. Zo kun
 - Wikipedia contributors. (2025, March 5). Field of view. Wikipedia. Retrieved June 5, 2025, from <https://en.wikipedia.org/wiki/Field_of_view>
 - Peeters, T. (2025). VR Experience [Cursusmateriaal, AP Hogeschool]. Persoonlijke lessen en oefenopdrachten gebruikt als referentie en basis voor implementatie.
 - Peeters, T. (2023). 3D Game Programming [Cursusmateriaal, AP Hogeschool]. Gebruikt voor codevoorbeelden, technische inzichten en referentie tijdens projectontwikkeling.
+- Philipp. (2017, May 18). Target range [3D model]. Sketchfab. <https://sketchfab.com/3d-models/target-range-45c07cbdfa3e49d594fdc2dd6c2940ea>. Het origin 3d-model voor de scene.

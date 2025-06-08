@@ -521,6 +521,22 @@ public class Gun : MonoBehaviour
 ```
 
 ### One-pager
+1 V AI Shooting Range
+Dierckx Jarno, Breugelmans Robin en Van Daele Brent
+
+Het spel is een competitie tegen een AI-tegenstander waar de speler en de AI-agent een zo hoog mogelijke score moeten behalen. De speler kan punten verdienen door in de range op het doelwit te schieten, en krijgt zo meer of minder punten afhankelijk van waar het doelwit werd geraakt.
+De shooting range zelf is dan ook de enige scene in het spel, en bestaat uit een gebouw met daarin een geweer voor de speler, de AI en het doelwit.
+De simulatie start zodra de timer wordt gestart. Beide de speler en de AI moeten dan tegelijkertijd op een target schieten. Het doelwit veranderd na iedere hit van positie en de score wordt in real-time weergegeven op een scorebord achteraan de ruimte. Als de tijdslimiet verloopt worden de scores vergeleken en wordt de winnaar aangeduid. De speler heeft nadien de optie om opnieuw te spelen.
+
+Waarom AI?
+De AI-tegenstander introduceert een competitief element dat de speler motiveert om beter te mikken en sneller te reageren. In tegenstelling tot een eenvoudige scoreteller zonder tegenstander, zorgt de AI voor een levendige en dynamische uitdaging. Voor deze toepassing gebruiken we een Single-Agent Reinforcement Learning AI, waarbij de agent getraind is om te mikken en te schieten op een manier die menselijke prestaties nabootst en overstijgt.
+
+Waarom VR?
+Een VR simulatie maakt het leuker om met een geweer te schieten. En ondanks dat er enkele schietbanen in België zijn, maken de meeste mensen er geen gewoonte van om één te bezoeken.
+Dit spel kan zo een ervaring nabootsen vanuit het comfort dat de speler thuis zelf heeft. Door de 3D-diepte en de mogelijkheid om met echte bewegingen te richten, wordt het spel fysiek interactiever en natuurlijker dan via traditionele schermen.
+
+Interactiemodel tussen speler en systeem
+De speler kan vrij rondkijken en bewegen binnen de ruimte van de shooting range. Interactie gebeurt voornamelijk via de handcontrollers: het oppakken en richten van het wapen en het vuren. Scores worden automatisch toegekend op basis van waar het doelwit geraakt wordt. Daarnaast is er visuele feedback via een scorebord en timer. De AI-agent voert zelfstandig acties uit op basis van zijn "beslissingen", zodat het aanvoelt als een echte tegenstander. Deze interactie creëert een meeslepende simulatie die zowel leuk als leerzaam is.
 
 ### Afwijkingen van one-pager
 
